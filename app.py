@@ -1,11 +1,8 @@
-import signal
 import sys
 import os
-import time
-import ipaddress
-import requests
 import configparser
 from mobSF_rest_API import MobSF_API
+import subprocess
 
 class Main:
     def __init__(self):
@@ -14,6 +11,7 @@ class Main:
     def load_config(self):
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
+        self.mobsf_path = self.config['MobSF'].get('MobSF', self.config['DEFAULT']['MobSF'])
         self.server_ip = self.config['SERVER'].get('ServerIP', self.config['DEFAULT']['ServerIP'])
         self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath'])
@@ -25,6 +23,8 @@ class Main:
     def start(self):
 
         self.print_welcome()
+        self.run_mobsf()
+
         while True:
             command = input(">>> ").split(" ")
             if command[0] == "":
@@ -46,6 +46,9 @@ class Main:
             
             elif command[0] == "static" and len(command) > 1 and command[1] == "analysis":
                 self.static_analysis()
+            
+            elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
+                self.dynamic_analysis()
 
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -88,6 +91,16 @@ class Main:
             print("{0:35s}\t{1:s}".format(command, help[command]))
         print()
 
+    def run_mobsf(self):
+        run_script_path = os.path.join(self.mobsf_path, 'run.bat')
+        if not os.path.exists(run_script_path):
+            print(f"Error: Invalid Path - {self.mobsf_path}")
+            print("Please run MobSF Manually")
+            return  
+        process = subprocess.Popen(run_script_path, shell=True, cwd=self.mobsf_path)        
+       
+        print("MobSF is starting... you can now enter next commands:\n")
+        return process  
 
     def get_status(self):       
         if hasattr(self, 'server_ip'):
@@ -117,10 +130,14 @@ class Main:
 
         response_data = mobsf_api.upload()
         if response_data:
-            mobsf_api.scan(response_data)
-            mobsf_api.json_resp(response_data)
-            mobsf_api.pdf(response_data)
-            mobsf_api.delete(response_data)
+            mobsf_api.scan()
+            mobsf_api.json_resp()
+            mobsf_api.pdf()
+            mobsf_api.delete()
+    
+    def dynamic_analysis(self):
+        print("Dynamic analysis stadrt...")
+    
 
 if __name__ == "__main__":
     main = Main()

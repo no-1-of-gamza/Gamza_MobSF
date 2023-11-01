@@ -6,65 +6,79 @@ import json
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-SERVER = "http://127.0.0.1:8000"
-FILE = 'C:' 
-APIKEY = ''
-
 
 class MobSF_API:
     def __init__(self, server, api_key, file_path):
         self.server = server
         self.api_key = api_key
         self.file_path = file_path
-
+        self.scan_hash = None  
 
     def upload(self):
         """Upload File"""
-        print("Uploading file")
-        multipart_data = MultipartEncoder(fields={'file': (FILE, open(FILE, 'rb'), 'application/octet-stream')})
-        headers = {'Content-Type': multipart_data.content_type, 'Authorization': APIKEY}
-        response = requests.post(SERVER + '/api/v1/upload', data=multipart_data, headers=headers)
+        print("Uploading file...")
+        multipart_data = MultipartEncoder(
+            fields={'file': (self.file_path, open(self.file_path, 'rb'), 'application/octet-stream')}
+        )
+        headers = {
+            'Content-Type': multipart_data.content_type,
+            'Authorization': self.api_key
+        }
+        response = requests.post(f'{self.server}/api/v1/upload', data=multipart_data, headers=headers)
+        result = response.json()  #
+        if 'hash' in result:
+            self.scan_hash = result['hash']  
         print(response.text)
-        return response.text
+        return result
 
-
-    def scan(self, data):
+    def scan(self):
         """Scan the file"""
-        print("Scanning file")
-        post_dict = json.loads(data)
-        headers = {'Authorization': APIKEY}
-        response = requests.post(SERVER + '/api/v1/scan', data=post_dict, headers=headers)
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        print("Scanning file...")
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/scan', data=data, headers=headers)
         print(response.text)
 
-
-    def pdf(self, data):
+    def pdf(self):
         """Generate PDF Report"""
-        print("Generate PDF report")
-        headers = {'Authorization': APIKEY}
-        data = {"hash": json.loads(data)["hash"]}
-        response = requests.post(SERVER + '/api/v1/download_pdf', data=data, headers=headers, stream=True)
-        with open("report.pdf", 'wb') as flip:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    flip.write(chunk)
-        print("Report saved as report.pdf")
-        
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        print("Generating PDF report...")
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/download_pdf', data=data, headers=headers, stream=True)
+        if response.status_code == 200:
+            with open("report.pdf", 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+            print("Report saved as report.pdf")
+        else:
+            print("Failed to download PDF report.")
 
-
-    def json_resp(self, data):
+    def json_resp(self):
         """Generate JSON Report"""
-        print("Generate JSON report")
-        headers = {'Authorization': APIKEY}
-        data = {"hash": json.loads(data)["hash"]}
-        response = requests.post(SERVER + '/api/v1/report_json', data=data, headers=headers)
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        print("Generating JSON report...")
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/report_json', data=data, headers=headers)
         print(response.text)
 
-
-    def delete(self, data):
+    def delete(self):
         """Delete Scan Result"""
-        print("Deleting Scan")
-        headers = {'Authorization': APIKEY}
-        data = {"hash": json.loads(data)["hash"]}
-        response = requests.post(SERVER + '/api/v1/delete_scan', data=data, headers=headers)
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        print("Deleting Scan...")
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/delete_scan', data=data, headers=headers)
         print(response.text)
 
