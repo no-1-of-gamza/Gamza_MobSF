@@ -2,23 +2,36 @@ import signal
 import sys
 import os
 import time
+import ipaddress
+import requests
+import configparser
+from mobSF_rest_API import MobSF_API
 
 class Main:
     def __init__(self):
+        self.load_config()
 
-        print("\nInitializing sandbox...please wait......")
+    def load_config(self):
+        self.config = configparser.ConfigParser()
+        self.config.read('config.ini')
+        self.server_ip = self.config['SERVER'].get('ServerIP', self.config['DEFAULT']['ServerIP'])
+        self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
+        self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath'])
+
+    def save_config(self):
+        with open('config.ini', 'w') as configfile:
+            self.config.write(configfile)
 
     def start(self):
 
         self.print_welcome()
-
         while True:
             command = input(">>> ").split(" ")
             if command[0] == "":
                 pass
 
             elif command[0] == "exit":
-                option = input("Are you sure to exit program? Your snapshots and logs will be deleted. <yes(default)/no>: ")
+                option = input("Are you sure to exit program? <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue
@@ -30,64 +43,6 @@ class Main:
                 
             elif command[0] == "status":
                 self.get_status()
-
-            elif command[:2] == ["set", "vm"]:
-                if len(command) < 3:
-                    print("set vm: invalid command\n")
-                    self.help()
-                    continue
-                
-                vm_name = command[2]
-                self.set_vm(vm_name)
-                
-            elif command[:2] == ["set", "malware"]:
-                if len(command) < 3:
-                    print("set malware: invalid command\n")
-                    self.help()
-                    continue
-                
-                malware_path = command[2]
-                self.set_malware(malware_path)
-
-            elif command[:2] == ["list", "vm"]:
-                self.list_vm()
-            
-            elif command[:2] == ["list", "snapshot"]:
-                if len(command) < 3:
-                    print("list snapshot: invalid command\n")
-                    self.help()
-                    continue
-                
-                vm_name = command[2]
-                self.list_snapshot(vm_name)
-            
-            elif command[:2] == ["take", "snapshot"]:
-                if len(command) < 3:
-                    print("take snapshot: invalid command\n")
-                    self.help()
-                    continue
-                
-                if command[2] == "init_snapshot":
-                    print("take snapshot: cannot use the init snapshot name\n")
-                    continue
-
-                snapshot_name = command[2]
-                self.take_snapshot(snapshot_name)
-
-            elif command[0] == "rollback":
-                if len(command) < 2:
-                    print("rollback: invalid command\n")
-                    self.help()
-                    continue
-
-                snapshot_name = command[1]
-                self.rollback_snapshot(snapshot_name)
-                
-            elif command[:2] == ["start", "analyze"]:
-                self.start_analyze()
-
-            elif command[:2] == ["stop", "analyze"]:
-                self.stop_analyze()
 
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -116,21 +71,12 @@ class Main:
         print(welcome_message)
 
     def exit(self):
-        sys.exit(0)
-
-        
+        sys.exit(0)        
         
     def help(self):
         help = {
             "status": "Show current target vm/malware",
-            "set vm [vm name]": "Set target Virtual Machine's name",
-            "set malware [exe path]": "Set target malware execution file's path",
-            "list vm": "List available Virtual Machine",
-            "list snapshot [vm name]": "List saved snapshot",
-            "take snapshot [new snapshot name]": "Take snapshot of current analyzing status",
-            "rollback [snapshot name]": "Rollback current vm to specific snapshot",
-            "start analyze": "Start analyze based on set information(vm, malware)",
-            "stop analyze": "Stop analyze based on set information(vm, malware)",
+            "static analysis":"Static Analysis File and Report to Pdf",
             "exit": "Exit shell"
         }
 
@@ -138,9 +84,40 @@ class Main:
         for command in help.keys():
             print("{0:35s}\t{1:s}".format(command, help[command]))
         print()
-            
 
 
+    def get_status(self):       
+        if hasattr(self, 'server_ip'):
+            print("\nMobSF server IP: {}".format(self.server_ip))
+        else:
+            print("\nMobSF server IP is not set.")
+
+        if hasattr(self, 'api_key'):
+            print("MobSF API KEY: {}".format(self.api_key))
+        else:
+            print("MobSF API KEY is not set.")
+
+        if hasattr(self, 'file_path'):
+            if self.file_path is None:
+                print("Target file path is not set.\n")
+            elif isinstance(self.file_path, str):
+                print("Target APK path: {}\n".format(self.file_path))
+            else:
+                print("Target file path is not set.\n")
+        else:
+            print("Target file path is not set.\n")
+
+    def static_analysis(self):
+        """Perform static analysis using MobSF REST API"""
+        print("Static analysis start...")
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+
+        response_data = mobsf_api.upload()
+        if response_data:
+            mobsf_api.scan(response_data)
+            mobsf_api.json_resp(response_data)
+            mobsf_api.pdf(response_data)
+            mobsf_api.delete(response_data)
 
 if __name__ == "__main__":
     main = Main()
