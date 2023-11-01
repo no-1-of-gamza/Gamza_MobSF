@@ -43,6 +43,9 @@ class Main:
                 
             elif command[0] == "status":
                 self.get_status()
+            
+            elif command[0] == "static" and len(command) > 1 and command[1] == "analysis":
+                self.static_analysis()
 
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
