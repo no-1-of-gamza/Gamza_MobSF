@@ -3,6 +3,9 @@ import os
 import configparser
 from mobSF_rest_API import MobSF_API
 import subprocess
+import requests
+import threading
+import time
 
 class Main:
     def __init__(self):
@@ -15,6 +18,8 @@ class Main:
         self.server_ip = self.config['SERVER'].get('ServerIP', self.config['DEFAULT']['ServerIP'])
         self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath'])
+        self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
+
 
     def save_config(self):
         with open('config.ini', 'w') as configfile:
@@ -122,23 +127,80 @@ class Main:
                 print("Target file path is not set.\n")
         else:
             print("Target file path is not set.\n")
+        
+        if hasattr(self, 'mobsf_path'):
+            print("\nMobSF Path: {}".format(self.mobsf_path))
+        else:
+            print("\nMobSF Path is not set.")
+
+    def server_is_running(self):
+        """Check if the MobSF server is running."""
+        try:
+            response = requests.get(self.server_ip)
+            if response.status_code == 200:
+                return True
+            else:
+                print("The server responded with status code:", response.status_code)
+                return False
+        except requests.ConnectionError:
+            print("Failed to connect to the server. Please make sure the MobSF server is running and accessible.")
+            return False
+        
 
     def static_analysis(self):
-        """Perform static analysis using MobSF REST API"""
-        print("Static analysis start...")
+        print("Static analyze start...")
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
 
-        response_data = mobsf_api.upload()
-        if response_data:
-            mobsf_api.scan()
-            mobsf_api.json_resp()
-            mobsf_api.pdf()
-            mobsf_api.delete()
-    
-    def dynamic_analysis(self):
-        print("Dynamic analysis stadrt...")
-    
+        if self.server_is_running():
+            print("MobSF Server is Working!")
+            response_data = mobsf_api.upload()
+            if response_data:
+                mobsf_api.scan()
+                mobsf_api.json_resp()
+                mobsf_api.pdf()
+                mobsf_api.delete()
+        else:
+            print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
+            print("---current seting---")
+            self.get_status(self)
 
+    
+    def wait_for_emulator_to_start(self, process):
+        last_line = None
+        while True:
+            line = process.stdout.readline()
+            if not line and process.poll() is not None:
+                break
+            if line:
+                last_line = line.strip()
+                print(last_line)
+                if "INFO | Revoking microphone permissions for Google App." in last_line:
+                    print("Emulator started successfully with the desired message.")
+
+        if process.returncode and process.returncode != 0:
+            print(f"Emulator failed to start with return code {process.returncode}.")
+
+    def dynamic_analysis(self):
+        print("Dynamic analysis start")
+        if self.server_is_running():
+            print("MobSF Server Checking...")
+            print("MobSF Server is Working!")
+        else :
+            print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
+            print("---current setting---")
+            self.get_status(self)
+
+        command = f'emulator -avd {self.avm_name} -writable-system -no-snapshot'
+        try:
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=self.mobsf_path)
+            thread = threading.Thread(target=self.wait_for_emulator_to_start, args=(process,))
+            thread.start()
+            print("Emulator is starting you can now enter next commands:\n")
+        except Exception as e:
+            print("Fail to Start Emulator. Run Emulator Manually or Check your option")
+            print(e)
+               
+            
 if __name__ == "__main__":
     main = Main()
     main.start()
