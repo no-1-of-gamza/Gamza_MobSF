@@ -52,11 +52,11 @@ class Main:
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
                 self.dynamic_analysis()
             
-            elif command[0] == "frida" and len(command) > 1 and command[1] == "instrument":
-                self.frida_instrument()
+            elif command[0] == "frida" and len(command) > 1 and command[1] == "analysis":
+                self.frida_analysis()
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
-                self.frida_instrument()
+                self.dynamic_analysis_stop()
                         
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -91,7 +91,8 @@ class Main:
         help = {
             "status": "Show current target vm/malware",
             "static analysis":"Static Analysis File and Report to Pdf",
-            "dynamic analysis":"Set Dynamic Analysis",
+            "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
+            "frida analysis":"Using your frida script and Dynamic Analysis",
             "exit": "Exit shell"
         }
 
@@ -138,7 +139,6 @@ class Main:
             print("\nMobSF Path is not set.")
 
     def server_is_running(self):
-        """Check if the MobSF server is running."""
         try:
             response = requests.get(self.server_ip)
             if response.status_code == 200:
@@ -167,7 +167,6 @@ class Main:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
             self.get_status(self)
-
 
     def run_emulator(self):
         print("running emnulator start")
@@ -230,16 +229,14 @@ class Main:
             return analysis_setting_result
             
     def dynamic_analysis(self):
-        analysis_setting_result = self.dynamic_analysis_setting()
+        self.dynamic_analysis_setting()
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
-        activities =analysis_setting_result["activities"]
-        exported_activities =analysis_setting_result["activities"]
-
-        for activity in activities:
-            result = mobsf_api.dynamic_analysis_activity_start(activity=activity)
-
-        for exported_activity in exported_activities:
-            result = mobsf_api.dynamic_analysis_activity_start(activity=exported_activity)
+        mobsf_api.upload()
+        mobsf_api.dynamic_analysis_activity_start('activity')
+        mobsf_api.dynamic_analysis_activity_start('exported_activity')
+        mobsf_api.dynamic_ttl_ssl_test()
+        mobsf_api.dynamic_analysis_stop()
+        mobsf_api.dynamic_jason_report()
 
     def dynamic_analysis_stop(self):
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
@@ -247,8 +244,14 @@ class Main:
         print("Dynamic analysis is stop.")
         return
 
-    def frida_instrument(self):
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)      
+    def frida_analysis(self):
+        self.dynamic_analysis_setting()
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        mobsf_api.upload()
+        mobsf_api.dynamic_analysis_activity_start('activity')
+        mobsf_api.dynamic_analysis_activity_start('exported_activity')
+        mobsf_api.dynamic_ttl_ssl_test()
+         
         try:
             with open(self.frida_script_path, 'r') as file:
                 frida_code = file.read()
@@ -258,11 +261,16 @@ class Main:
         try:
             mobsf_api.upload()
             mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
-            print("Performing Frida Instrumentation...")
+            print("Performing Frida Instrumentation")
         
         except Exception as e:
             print("Please check Frida Code")
-    
+        mobsf_api.frida_api_monitor()
+        mobsf_api.frida_get_dependencies_api()
+        mobsf_api.frida_view_logs()
+        #mobsf_api.frida_get_script(script)
+        mobsf_api.dynamic_analysis_stop()
+        mobsf_api.dynamic_jason_report()
             
 if __name__ == "__main__":
     main = Main()

@@ -6,7 +6,7 @@ import json
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import time
-
+from datetime import datetime
 
 class MobSF_API:
     def __init__(self, server, api_key, file_path):
@@ -33,7 +33,7 @@ class MobSF_API:
         result = response.json() 
         if 'hash' in result:
             self.scan_hash = result['hash']  
-        print(response.text)
+        print("Uploading File : ",response.text)
         return result
 
     def scan(self):
@@ -45,7 +45,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/scan', data=data, headers=headers)
-        print(response.text)
+        print("Scanning File : ",response.text)
 
     def pdf(self):
         """Generate PDF Report"""
@@ -57,7 +57,9 @@ class MobSF_API:
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/download_pdf', data=data, headers=headers, stream=True)
         if response.status_code == 200:
-            with open("report.pdf", 'wb') as f:
+            current_time = datetime.now()
+            date_str = current_time.strftime("%Y-%m-%d")
+            with open(f"static_report_{self.scan_hash}_{date_str}.pdf", 'wb') as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
@@ -74,7 +76,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/report_json', data=data, headers=headers)
-        print(response.text)
+        #print(response.text)
 
     def delete(self):
         """Delete Scan Result"""
@@ -97,38 +99,92 @@ class MobSF_API:
 
     def dynamic_analysis_setting(self):
         """Dynamic analysis"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/dynamic/start_analysis', data=data, headers=headers)
-        print(response.text)
+        print("Dynamic Analysis Setting : ",response.text)
         reponse_json=response.json()
         return reponse_json
 
     def dynamic_analysis_stop(self):
         """Dynamic analysis stop"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/dynamic/stop_analysis', data=data, headers=headers)
-        print(response.text)
+        print("Dynamic Analysis Stop : ",response.text)
 
 
     def dynamic_analysis_activity_start(self,activity=''):
         """Dynamic analysis Activity Tester API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash,
                 'activity' : activity}
         response = requests.post(f'{self.server}/api/v1/android/start_activity', data=data, headers=headers)
-        print(response.text)
+        print("Dynamic Analysis Activity Start : ",activity,response.text)
+
+    def dynamic_ttl_ssl_test(self):
+        """Dynamic analysis TLS/SSL Security Tester API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/android/tls_tests', data=data, headers=headers)
+        print("Dynamic analysis TLS/SSL Security Tester : ",response.text)
 
 
     def dynamic_jason_report(self):
         """Dynamic Json report"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/dynamic/report_json', data=data, headers=headers)
-        print(response.text)
-        reponse_json=response.json()
-        return reponse_json
+        response_json = response.json()
+        #print(json.dumps(response_json, indent=4))
+        current_time = datetime.now()
+        date_str = current_time.strftime("%Y-%m-%d")
+        filename = f"dynamic_report_{self.scan_hash}_{date_str}.json"
+        
+        with open(filename, 'w') as json_file:
+            json.dump(response_json, json_file, indent=4)
+        
+        print(f"JSON report saved to {filename}")
+    
+        return response_json
+    
+    def dynamic_view_source(self, type):
+        """Dynamic Analysis View Source API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash,
+                'file': self.file_path,
+                'type':type}
+        response = requests.post(f'{self.server}/api/v1/dynamic/view_source', data=data, headers=headers)
+        response_json = response.json()
+        #print(json.dumps(response_json, indent=4))
+
+        filename = f"dynamic_report_{self.scan_hash}.json"
+        
+        with open(filename, 'w') as json_file:
+            json.dump(response_json, json_file, indent=4)
+        
+        print(f"JSON report saved to {filename}")
+    
+        return response_json
+
 
 
 
@@ -159,11 +215,58 @@ class MobSF_API:
             data['class_trace'] = class_trace
 
         response = requests.post(f'{self.server}/api/v1/frida/instrument', headers=headers, data=data)
+        print("Perform Frida Instrumentation : ",response.text)
 
+    def frida_api_monitor(self):
+        """Frida API Monitor API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/frida/api_monitor', data=data, headers=headers)
         print(response.text)
 
+    def frida_get_dependencies_api(self):
+        """Frida Get Runtime Dependencies API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/frida/api_monitor', data=data, headers=headers)
+        print("Frida Get Runtime Dependencies : ",response.text)
 
+    def frida_view_logs(self):
+        """Frida View Logs API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/frida/logs', data=data, headers=headers)
+        print("Frida View Logs : ",response.text)
     
+    def frida_list_scripts(self):
+        """Frida List Scripts API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
+        print(response.text)
+
+    def frida_get_script(self, scripts):
+        """Frida Frida Get Script API"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash,
+                'scripts[]':scripts}
+        response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
+        print("Frida Frida Get Script : ",response.text)
 
 
 
