@@ -19,14 +19,12 @@ class Main:
         self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath'])
         self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
-
-
+        self.frida_script_path = self.config['Frida'].get('Frida_Script', self.config['DEFAULT']['Frida_Script'])
     def save_config(self):
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
 
     def start(self):
-
         self.print_welcome()
         self.run_mobsf()
 
@@ -39,8 +37,7 @@ class Main:
                 option = input("Are you sure to exit program? <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
-                    continue
-                
+                    continue               
                 self.exit()
 
             elif command[0] == "help":
@@ -54,7 +51,13 @@ class Main:
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
                 self.dynamic_analysis()
-
+            
+            elif command[0] == "frida" and len(command) > 1 and command[1] == "instrument":
+                self.frida_instrument()
+            
+            elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
+                self.frida_instrument()
+                        
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
                 self.help()
@@ -88,6 +91,7 @@ class Main:
         help = {
             "status": "Show current target vm/malware",
             "static analysis":"Static Analysis File and Report to Pdf",
+            "dynamic analysis":"Set Dynamic Analysis",
             "exit": "Exit shell"
         }
 
@@ -104,7 +108,7 @@ class Main:
             return  
         process = subprocess.Popen(run_script_path, shell=True, cwd=self.mobsf_path)        
        
-        print("MobSF is starting... you can now enter next commands:\n")
+        print("MobSF is starting! you can now enter next commands:\n")
         return process  
 
     def get_status(self):       
@@ -164,24 +168,10 @@ class Main:
             print("---current seting---")
             self.get_status(self)
 
-    
-    def wait_for_emulator_to_start(self, process):
-        last_line = None
-        while True:
-            line = process.stdout.readline()
-            if not line and process.poll() is not None:
-                break
-            if line:
-                last_line = line.strip()
-                print(last_line)
-                if "INFO | Revoking microphone permissions for Google App." in last_line:
-                    print("Emulator started successfully with the desired message.")
 
-        if process.returncode and process.returncode != 0:
-            print(f"Emulator failed to start with return code {process.returncode}.")
+    def run_emulator(self):
+        print("running emnulator start")
 
-    def dynamic_analysis(self):
-        print("Dynamic analysis start")
         if self.server_is_running():
             print("MobSF Server Checking...")
             print("MobSF Server is Working!")
@@ -191,15 +181,88 @@ class Main:
             self.get_status(self)
 
         command = f'emulator -avd {self.avm_name} -writable-system -no-snapshot'
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        
+        if process.returncode is not None and process.returncode != 0:
+            print(f"Emulator failed to start with return code {process.returncode}.")
+            return
+        else:
+            print("Emulator started successfully.")
+            return 
+
+
+    def dynamic_analysis_setting(self):
+        self.run_emulator()
+
+        print("Please wait to set dynamic analysis")
+        time.sleep(60)
+
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+
+        response_data = mobsf_api.upload()
+
+        if response_data:
+            max_retries = 3
+            attempts = 0
+
+            while attempts < max_retries:
+                try:
+                    print(f"Attempting dynamic analysis, try {attempts+1} of {max_retries}")
+                    analysis_setting_result = mobsf_api.dynamic_analysis_setting()
+
+                    if 'error' in analysis_setting_result and analysis_setting_result['error'] == "Dynamic Analysis Failed.":
+                        print("Dynamic Analysis Failed, retrying...")
+                        attempts += 1
+                        time.sleep(10)          
+                    else:
+                        print("Dynamic Analysis Setting is Successful.")
+                        break
+                except Exception as e:
+                    print("An exception occurred during dynamic analysis.")
+                    print(e)
+                    attempts += 1                
+                    time.sleep(10)  
+            
+            if attempts == max_retries:
+                print("Dynamic analysis failed after maximum retries.")
+                print("Please check the Emulator settings and ensure it is running before trying again.")      
+                return
+            return analysis_setting_result
+            
+    def dynamic_analysis(self):
+        analysis_setting_result = self.dynamic_analysis_setting()
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        activities =analysis_setting_result["activities"]
+        exported_activities =analysis_setting_result["activities"]
+
+        for activity in activities:
+            result = mobsf_api.dynamic_analysis_activity_start(activity=activity)
+
+        for exported_activity in exported_activities:
+            result = mobsf_api.dynamic_analysis_activity_start(activity=exported_activity)
+
+    def dynamic_analysis_stop(self):
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        mobsf_api.dynamic_analysis_stop()
+        print("Dynamic analysis is stop.")
+        return
+
+    def frida_instrument(self):
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)      
         try:
-            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=self.mobsf_path)
-            thread = threading.Thread(target=self.wait_for_emulator_to_start, args=(process,))
-            thread.start()
-            print("Emulator is starting you can now enter next commands:\n")
+            with open(self.frida_script_path, 'r') as file:
+                frida_code = file.read()
         except Exception as e:
-            print("Fail to Start Emulator. Run Emulator Manually or Check your option")
-            print(e)
-               
+            print(f"Error reading the Frida script: {e}")
+            return
+        try:
+            mobsf_api.upload()
+            mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+            print("Performing Frida Instrumentation...")
+        
+        except Exception as e:
+            print("Please check Frida Code")
+    
             
 if __name__ == "__main__":
     main = Main()

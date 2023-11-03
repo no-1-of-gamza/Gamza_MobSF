@@ -5,6 +5,7 @@ MOBSF REST API Python Requests
 import json
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+import time
 
 
 class MobSF_API:
@@ -14,6 +15,10 @@ class MobSF_API:
         self.file_path = file_path
         self.scan_hash = None  
 
+    """"""""""""""""""""""""""""""""""""
+    """""""""Static    Analysis"""""""""
+    """"""""""""""""""""""""""""""""""""
+    
     def upload(self):
         """Upload File"""
         print("Uploading file...")
@@ -25,7 +30,7 @@ class MobSF_API:
             'Authorization': self.api_key
         }
         response = requests.post(f'{self.server}/api/v1/upload', data=multipart_data, headers=headers)
-        result = response.json()  #
+        result = response.json() 
         if 'hash' in result:
             self.scan_hash = result['hash']  
         print(response.text)
@@ -81,4 +86,85 @@ class MobSF_API:
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/delete_scan', data=data, headers=headers)
         print(response.text)
+        
+
+
+
+
+    """"""""""""""""""""""""""""""""""""
+    """""""""Dynamic Analysis"""""""""
+    """"""""""""""""""""""""""""""""""""
+
+    def dynamic_analysis_setting(self):
+        """Dynamic analysis"""
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/dynamic/start_analysis', data=data, headers=headers)
+        print(response.text)
+        reponse_json=response.json()
+        return reponse_json
+
+    def dynamic_analysis_stop(self):
+        """Dynamic analysis stop"""
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/dynamic/stop_analysis', data=data, headers=headers)
+        print(response.text)
+
+
+    def dynamic_analysis_activity_start(self,activity=''):
+        """Dynamic analysis Activity Tester API"""
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash,
+                'activity' : activity}
+        response = requests.post(f'{self.server}/api/v1/android/start_activity', data=data, headers=headers)
+        print(response.text)
+
+
+    def dynamic_jason_report(self):
+        """Dynamic Json report"""
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash}
+        response = requests.post(f'{self.server}/api/v1/dynamic/report_json', data=data, headers=headers)
+        print(response.text)
+        reponse_json=response.json()
+        return reponse_json
+
+
+
+    """"""""""""""""""""""""""""""""""""
+    """""""""""""Frida"""""""""""""
+    """"""""""""""""""""""""""""""""""""
+
+    def frida_instrument(self, default_hooks=True, auxiliary_hooks='', frida_code='', class_name=None, class_search=None, class_trace=None):
+        """Perform Frida Instrumentation"""
+        if not self.scan_hash:
+            print("No file uploaded or hash not found for Frida Instrumentation")
+            return
+        
+        headers = {'Authorization': self.api_key }
+
+        data = {
+            'hash': self.scan_hash,
+            'default_hooks': default_hooks,
+            'auxiliary_hooks': auxiliary_hooks,
+            'frida_code': frida_code
+        }
+
+        if class_name is not None:
+            data['class_name'] = class_name
+        if class_search is not None:
+            data['class_search'] = class_search
+        if class_trace is not None:
+            data['class_trace'] = class_trace
+
+        response = requests.post(f'{self.server}/api/v1/frida/instrument', headers=headers, data=data)
+
+        print(response.text)
+
+
+    
+
+
+
 
