@@ -35,21 +35,23 @@ https://github.com/MobSF/Mobile-Security-Framework-MobSF
 
 ### Static Analysis
 
-Input CLI "static analysis", Wait few minutes
+Input CLI "static analysis", Wait few minutes.
 
        >> static analysis
 
-You can get a report.pdf about your apk
-
+You can get a report.pdf about your apk.
+![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/1a2c1c62-4959-488e-9101-4ae26a10bd15)
 
 ### Dynamic Analysis
 
-Input CLK "dynamic analysis", Wait few minutes
+Input CLK "dynamic analysis", Wait few minutes.
 It takes more time than static analysis and Please check your AVD *(Android Studio, GenyMotion)
 
-Analyze Activities, Exported Activities, TTL Test and Make Report
+Analyze Activities, Exported Activities, TTL Test and Make Report.
 
        >> dynamic analysis
+![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/ca164902-e08e-4891-8adc-a3aaecedeb70)
 
-You can get a report.jason about your apk
+You can get a report.jason about your apk.
+![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/6e032a2d-602c-41c4-b139-fea161f62883)
 
