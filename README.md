@@ -47,6 +47,8 @@ You can get a report.pdf about your apk
 Input CLK "dynamic analysis", Wait few minutes
 It takes more time than static analysis and Please check your AVD *(Android Studio, GenyMotion)
 
+Analyze Activities, Exported Activities, TTL Test and Make Report
+
        >> dynamic analysis
 
 You can get a report.jason about your apk
