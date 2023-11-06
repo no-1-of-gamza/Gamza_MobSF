@@ -16,6 +16,7 @@
 
 
 You can use MobSF API in Python CLI
+
 **Automatically Run Server, Analysis, Make Report**
 
 ## Usage
