@@ -90,9 +90,6 @@ class MobSF_API:
         print(response.text)
         
 
-
-
-
     """"""""""""""""""""""""""""""""""""
     """""""""Dynamic Analysis"""""""""
     """"""""""""""""""""""""""""""""""""
@@ -184,8 +181,6 @@ class MobSF_API:
         print(f"JSON report saved to {filename}")
     
         return response_json
-
-
 
 
     """"""""""""""""""""""""""""""""""""

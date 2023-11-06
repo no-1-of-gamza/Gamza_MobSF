@@ -27,7 +27,7 @@ class Main:
     def start(self):
         self.print_welcome()
         self.run_mobsf()
-
+        
         while True:
             command = input(">>> ").split(" ")
             if command[0] == "":
@@ -63,25 +63,25 @@ class Main:
                 self.help()
 
     def print_welcome(self):
-        welcome_message = """
-        _____   ___  ___  ___ ______  ___  
-        |  __ \ / _ \ |  \/  ||___  / / _ \ 
-        | |  \// /_\ \| .  . |   / / / /_\ \\
-        | | __ |  _  || |\/| |  / /  |  _  |
-        | |_\ \| | | || |  | |./ /___| | | |
-        \____/\_| |_/\_|  |_/\_____/\_| |_/
-                                    
-        ___  ___        _      _____ ______    ___  ______  _____ 
-        |  \/  |       | |    /  ___||  ___|  / _ \ | ___ \|_   _|
-        | .  . |  ___  | |__  \ `--. | |_    / /_\ \| |_/ /  | |  
-        | |\/| | / _ \ | '_ \  `--. \|  _|   |  _  ||  __/   | |  
-        | |  | || (_) || |_) |/\__/ /| |     | | | || |     _| |_ 
-        \_|  |_/ \___/ |_.__/ \____/ \_|     \_| |_/\_|     \___/ 
+        welcome_message = r"""
+            _____   ___  ___  ___ ______  ___
+            |  __ \ / _ \ |  \/  ||___  / / _ \
+            | |  \// /_\ \| .  . |   / / / /_\ \
+            | | __ |  _  || |\/| |  / /  |  _  |
+            | |_\ \| | | || |  | |./ /___| | | |
+            \____/\_| |_/\_|  |_/\_____/\_| |_/
+
+            ___  ___        _      _____ ______    ___  ______  _____
+            |  \/  |       | |    /  ___||  ___|  / _ \ | ___ \|_   _|
+            | .  . |  ___  | |__  \ `--. | |_    / /_\ \| |_/ /  | |
+            | |\/| | / _ \ | '_ \  `--. \|  _|   |  _  ||  __/   | |
+            | |  | || (_) || |_) |/\__/ /| |     | | | || |     _| |_
+            \_|  |_/ \___/ |_.__/ \____/ \_|     \_| |_/\_|     \___/
+        
                                                                                                                                                                          
         To know how to use, use 'help' command.
-        Have a nice time ~
+        Have a nice time ~ ( ･ᴗ･ )♡ ~
         """
-        
         print(welcome_message)
 
     def exit(self):
@@ -110,6 +110,7 @@ class Main:
         process = subprocess.Popen(run_script_path, shell=True, cwd=self.mobsf_path)        
        
         print("MobSF is starting! you can now enter next commands:\n")
+    
         return process  
 
     def get_status(self):       
@@ -127,16 +128,16 @@ class Main:
             if self.file_path is None:
                 print("Target file path is not set.\n")
             elif isinstance(self.file_path, str):
-                print("Target APK path: {}\n".format(self.file_path))
+                print("Target APK path: {}".format(self.file_path))
             else:
                 print("Target file path is not set.\n")
         else:
             print("Target file path is not set.\n")
         
         if hasattr(self, 'mobsf_path'):
-            print("\nMobSF Path: {}".format(self.mobsf_path))
+            print("MobSF Path: {}\n".format(self.mobsf_path))
         else:
-            print("\nMobSF Path is not set.")
+            print("MobSF Path is not set.")
 
     def server_is_running(self):
         try:
