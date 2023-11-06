@@ -22,21 +22,30 @@ You can use MobSF API in Python CLI
 
 https://github.com/MobSF/Mobile-Security-Framework-MobSF
 
-2. Set Config.ini Your Information
+1. Set Config.ini Your Information
    
   ![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/4a7c0169-2f0b-4b5d-b60c-d2dee73f3ff5)
 
-## Static Analysis
+
+2. Run Program
+
+       app.py
+
+### Static Analysis
 
 Input CLI "static analysis", Wait few minutes
+
+       >> static analysis
 
 You can get a report.pdf about your apk
 
 
-## Dynamic Analysis
+### Dynamic Analysis
 
 Input CLK "dynamic analysis", Wait few minutes
 It takes more time than static analysis and Please check your AVD *(Android Studio, GenyMotion)
+
+       >> dynamic analysis
 
 You can get a report.jason about your apk
 
