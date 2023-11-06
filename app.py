@@ -47,6 +47,10 @@ class Main:
             elif command[0] == "status":
                 self.get_status()
             
+            elif command[0] == "analysis":
+                self.static_analysis()
+                self.dynamic_analysis()
+
             elif command[0] == "static" and len(command) > 1 and command[1] == "analysis":
                 self.static_analysis()
             
@@ -91,6 +95,7 @@ class Main:
     def help(self):
         help = {
             "status": "Show current Status Config",
+            "analysis":"Static Analysis and Dynamic Analysis",
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
             "frida analysis":"Using your frida script and Dynamic Analysis",
@@ -152,29 +157,45 @@ class Main:
             print("Failed to connect to the server. Please make sure the MobSF server is running and accessible.")
             return False
 
-    def choose_file_path(self):     
-        if len(self.file_path) > 1:
-            print("Multiple files detected. Please select one for static analysis:")
-            print("---------------------------------------------------------------")
-            for idx, path in enumerate(self.file_path):
-                clean_path = path.strip()
-                print(f"{idx + 1}.{clean_path}")
-            print("---------------------------------------------------------------")
-            selected_index = input(f"Enter the number (1-{len(self.file_path)}): ")
+    def choose_file_path(self):
+        while True:
+            if len(self.file_path) > 1:
+                print("Multiple files detected. Please select one for analysis:")
+                print("---------------------------------------------------------------")
+                for idx, path in enumerate(self.file_path):
+                    clean_path = path.strip()
+                    print(f"{idx + 1}. {clean_path}")
+                print("---------------------------------------------------------------")
+                selected_index = input(f"Enter the number (1-{len(self.file_path)}) or 'q' to quit: ")
 
-            try:
-                selected_index = int(selected_index) - 1  
-                if selected_index < 0 or selected_index >= len(self.file_path):
-                    raise ValueError("Selected index is out of range.")
-                return self.file_path[selected_index]
-            except ValueError as e:
-                print(f"Invalid selection: {e}")
+                if selected_index.lower() == 'q':
+                    return self.start()
+
+                try:
+                    selected_index = int(selected_index) - 1
+                    if selected_index < 0 or selected_index >= len(self.file_path):
+                        raise ValueError("Selected index is out of range.")
+
+                    selected_file_path = self.file_path[selected_index].strip()
+
+                    if not os.path.isfile(selected_file_path):
+                        print(f"The file at {selected_file_path} does not exist. Please try again.")
+                    else:
+                        return selected_file_path
+
+                except ValueError as e:
+                    print(f"Invalid selection: {e}")
+
+            elif self.file_path:
+                single_path = self.file_path[0].strip()
+                if os.path.isfile(single_path):
+                    return single_path
+                else:
+                    print(f"The file at {single_path} does not exist. Please check your file path.")
+                    return None
+            else:
+                print("No file paths are available.")
                 return None
-        elif self.file_path:
-            return self.file_path[0] 
-        else:
-            print("No file paths are available.")
-            return None
         
     def static_analysis(self):
         print("---------------------------------------------------------------")
@@ -185,11 +206,6 @@ class Main:
             return
 
         selected_file_path = self.choose_file_path()
-
-        if not selected_file_path:
-            print("invalid file path.")
-            print("---------------------------------------------------------------")
-            return
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -232,12 +248,8 @@ class Main:
             return 
 
     def dynamic_analysis_setting(self):
-        selected_file_path = self.choose_file_path()
 
-        if not selected_file_path:
-            print("invalid file path.")
-            print("---------------------------------------------------------------")
-            return
+        selected_file_path = self.choose_file_path()
         
         self.run_emulator()
         print("Please wait to set dynamic analysis")
