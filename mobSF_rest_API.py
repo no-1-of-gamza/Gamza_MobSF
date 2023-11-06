@@ -16,7 +16,7 @@ class MobSF_API:
         self.scan_hash = None  
 
     """"""""""""""""""""""""""""""""""""
-    """""""""Static    Analysis"""""""""
+    """""""""Static----Analysis"""""""""
     """"""""""""""""""""""""""""""""""""
     
     def upload(self):
@@ -91,7 +91,7 @@ class MobSF_API:
         
 
     """"""""""""""""""""""""""""""""""""
-    """""""""Dynamic Analysis"""""""""
+    """""""""Dynamic---Analysis"""""""""
     """"""""""""""""""""""""""""""""""""
 
     def dynamic_analysis_setting(self):
@@ -184,7 +184,7 @@ class MobSF_API:
 
 
     """"""""""""""""""""""""""""""""""""
-    """""""""""""Frida"""""""""""""
+    """""""""""""  Frida   """""""""""""
     """"""""""""""""""""""""""""""""""""
 
     def frida_instrument(self, default_hooks=True, auxiliary_hooks='', frida_code='', class_name=None, class_search=None, class_trace=None):

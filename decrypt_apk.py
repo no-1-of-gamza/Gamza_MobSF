@@ -16,6 +16,10 @@ class APKDecryptor:
         self.decrypt_extract_to_path = ''
         self.encrypted_dex = []
 
+    """"""""""""""""""""""""""""""""""""
+    """""""""APK----------Unzip"""""""""
+    """"""""""""""""""""""""""""""""""""
+
     def backup_apk_file(self):
         self.backup_apk = os.path.join(os.path.dirname(self.original_apk), 'original_' + os.path.basename(self.original_apk))
         shutil.copy2(self.original_apk, self.backup_apk)
@@ -62,24 +66,7 @@ class APKDecryptor:
         else:
             print(f"Some files failed to decrypt. There may be files not saved to 'decrypt_apk' folder.")
 
-    def clean_up_files(self):
-        # Change working directory to the specified path
-        os.chdir(self.decrypt_extract_to_path)
 
-        # Find all .dex files
-        all_dex_files = glob.glob('*.dex')
-
-        # Loop through the list of .dex files
-        for dex_file in all_dex_files:
-            # Check if the file does not end with 'decrypted.dex'
-            if not dex_file.endswith('decrypted.dex'):
-                # Delete the file
-                os.remove(dex_file)
-                print(f"Deleted file: {dex_file}")
-
-        print("All non-decrypted dex files have been deleted.")
-
-    # Private methods
     def _classify_dex_files(self, directory):
         true_dex_files = []
         encrypt_dex_files = []
@@ -107,6 +94,12 @@ class APKDecryptor:
                 encrypt_dex_files.append(file_path)
 
         return true_dex_files, encrypt_dex_files
+    
+
+
+    """"""""""""""""""""""""""""""""""""
+    """""""""Decrypt-------File"""""""""
+    """"""""""""""""""""""""""""""""""""
 
     def decrypt_file(self, file_path, key, encryption_method):
         # Extract encryption type and key length (if applicable)
@@ -154,7 +147,7 @@ class APKDecryptor:
         with open(decrypted_dex_path, 'wb') as decrypted_file:
             decrypted_file.write(decrypted_data)
             print(f"Decrypted dex file saved as: {decrypted_dex_path}")
-            
+
 if __name__ == "__main__":
     # The path to your APK and other parameters can be set here.
     apk_path = 'C:\\Users\\EJ\\Desktop\\sample.apk'
@@ -165,4 +158,3 @@ if __name__ == "__main__":
     decryptor.backup_apk_file()
     decryptor.unzip_apk()
     decryptor.decrypt_files()
-    decryptor.clean_up_files()

@@ -17,9 +17,10 @@ class Main:
         self.mobsf_path = self.config['MobSF'].get('MobSF', self.config['DEFAULT']['MobSF'])
         self.server_ip = self.config['SERVER'].get('ServerIP', self.config['DEFAULT']['ServerIP'])
         self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
-        self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath'])
+        self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath']).split(',')
         self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
         self.frida_script_path = self.config['Frida'].get('Frida_Script', self.config['DEFAULT']['Frida_Script'])
+
     def save_config(self):
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
@@ -89,7 +90,7 @@ class Main:
         
     def help(self):
         help = {
-            "status": "Show current target vm/malware",
+            "status": "Show current Status Config",
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
             "frida analysis":"Using your frida script and Dynamic Analysis",
@@ -113,7 +114,8 @@ class Main:
 
         return process  
 
-    def get_status(self):       
+    def get_status(self):
+        print("---------------------------------------------------------------")      
         if hasattr(self, 'server_ip'):
             print("\nMobSF server IP: {}".format(self.server_ip))
         else:
@@ -125,10 +127,8 @@ class Main:
             print("MobSF API KEY is not set.")
 
         if hasattr(self, 'file_path'):
-            if self.file_path is None:
-                print("Target file path is not set.\n")
-            elif isinstance(self.file_path, str):
-                print("Target APK path: {}".format(self.file_path))
+            if self.file_path:
+                print("Target file path ({}): {}".format(len(self.file_path), ', '.join(self.file_path)))
             else:
                 print("Target file path is not set.\n")
         else:
@@ -137,7 +137,8 @@ class Main:
         if hasattr(self, 'mobsf_path'):
             print("MobSF Path: {}\n".format(self.mobsf_path))
         else:
-            print("MobSF Path is not set.")
+            print("MobSF Path: MobSF Path is not set.")
+        print("---------------------------------------------------------------")
 
     def server_is_running(self):
         try:
@@ -150,11 +151,47 @@ class Main:
         except requests.ConnectionError:
             print("Failed to connect to the server. Please make sure the MobSF server is running and accessible.")
             return False
-        
 
+    def choose_file_path(self):     
+        if len(self.file_path) > 1:
+            print("Multiple files detected. Please select one for static analysis:")
+            print("---------------------------------------------------------------")
+            for idx, path in enumerate(self.file_path):
+                clean_path = path.strip()
+                print(f"{idx + 1}.{clean_path}")
+            print("---------------------------------------------------------------")
+            selected_index = input(f"Enter the number (1-{len(self.file_path)}): ")
+
+            try:
+                selected_index = int(selected_index) - 1  
+                if selected_index < 0 or selected_index >= len(self.file_path):
+                    raise ValueError("Selected index is out of range.")
+                return self.file_path[selected_index]
+            except ValueError as e:
+                print(f"Invalid selection: {e}")
+                return None
+        elif self.file_path:
+            return self.file_path[0] 
+        else:
+            print("No file paths are available.")
+            return None
+        
     def static_analysis(self):
+        print("---------------------------------------------------------------")
         print("Static analyze start...")
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+
+        if not self.server_is_running():
+            print("MobSF Server is not running. Please start the server before analysis.")
+            return
+
+        selected_file_path = self.choose_file_path()
+
+        if not selected_file_path:
+            print("invalid file path.")
+            print("---------------------------------------------------------------")
+            return
+        
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
         if self.server_is_running():
             print("MobSF Server is Working!")
@@ -168,9 +205,11 @@ class Main:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
             self.get_status(self)
+        print("---------------------------------------------------------------")
 
     def run_emulator(self):
-        print("running emnulator start")
+        print("---------------------------------------------------------------")
+        print("Running emnulator start")
 
         if self.server_is_running():
             print("MobSF Server Checking...")
@@ -185,19 +224,27 @@ class Main:
         
         if process.returncode is not None and process.returncode != 0:
             print(f"Emulator failed to start with return code {process.returncode}.")
+            print("---------------------------------------------------------------")
             return
         else:
             print("Emulator started successfully.")
+            print("---------------------------------------------------------------")
             return 
 
-
     def dynamic_analysis_setting(self):
-        self.run_emulator()
+        selected_file_path = self.choose_file_path()
 
+        if not selected_file_path:
+            print("invalid file path.")
+            print("---------------------------------------------------------------")
+            return
+        
+        self.run_emulator()
         print("Please wait to set dynamic analysis")
+
         time.sleep(60)
 
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
         response_data = mobsf_api.upload()
 
@@ -221,17 +268,25 @@ class Main:
                     print("An exception occurred during dynamic analysis.")
                     print(e)
                     attempts += 1                
-                    time.sleep(10)  
+                    time.sleep(10)
+                    print("---------------------------------------------------------------")
             
             if attempts == max_retries:
                 print("Dynamic analysis failed after maximum retries.")
-                print("Please check the Emulator settings and ensure it is running before trying again.")      
+                print("Please check the Emulator settings and ensure it is running before trying again.") 
+                print("---------------------------------------------------------------")     
                 return
-            return analysis_setting_result
+            
+            print("---------------------------------------------------------------")
+            return selected_file_path
             
     def dynamic_analysis(self):
-        self.dynamic_analysis_setting()
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        selected_file_path = self.dynamic_analysis_setting()
+        if not selected_file_path:
+            print("invalid file path.")
+            print("---------------------------------------------------------------")
+            return
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         mobsf_api.dynamic_analysis_activity_start('activity')
         mobsf_api.dynamic_analysis_activity_start('exported_activity')
@@ -246,6 +301,7 @@ class Main:
         return
 
     def frida_analysis(self):
+        print("---------------------------------------------------------------")
         self.dynamic_analysis_setting()
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
         mobsf_api.upload()
@@ -272,7 +328,8 @@ class Main:
         #mobsf_api.frida_get_script(script)
         mobsf_api.dynamic_analysis_stop()
         mobsf_api.dynamic_jason_report()
-            
+        print("---------------------------------------------------------------")
+
 if __name__ == "__main__":
     main = Main()
     main.start()
