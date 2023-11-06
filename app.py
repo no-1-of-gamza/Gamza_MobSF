@@ -27,14 +27,14 @@ class Main:
     def start(self):
         self.print_welcome()
         self.run_mobsf()
-        
+        time.sleep(0.1)
         while True:
             command = input(">>> ").split(" ")
             if command[0] == "":
                 pass
 
             elif command[0] == "exit":
-                option = input("Are you sure to exit program? <yes(default)/no>: ")
+                option = input("Are you sure to exit program? (ˊ࿁ˋ )ᐝ <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
@@ -109,8 +109,8 @@ class Main:
             return  
         process = subprocess.Popen(run_script_path, shell=True, cwd=self.mobsf_path)        
        
-        print("MobSF is starting! you can now enter next commands:\n")
-    
+        print("MobSF is starting! you can now enter next commands:")
+
         return process  
 
     def get_status(self):       
