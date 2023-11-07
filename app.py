@@ -148,6 +148,7 @@ class Main:
             print("MobSF Path: {}\n".format(self.mobsf_path))
         else:
             print("MobSF Path: MobSF Path is not set.")
+
         print("---------------------------------------------------------------")
 
     def server_is_running(self):
@@ -318,32 +319,38 @@ class Main:
         return
 
     def frida_analysis(self):
-        print("---------------------------------------------------------------")
-        selected_file_path = self.dynamic_analysis_setting()
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-        try:
-            with open(self.frida_script_path, 'r') as file:
-                frida_code = file.read()
-        except Exception as e:
-            print(f"Error reading the Frida script: {e}")
-            return
-        try:
+            print("---------------------------------------------------------------")
+            selected_file_path = self.dynamic_analysis_setting()
+            mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
             mobsf_api.upload()
-            mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
             mobsf_api.dynamic_analysis_activity_start('activity')
             mobsf_api.dynamic_analysis_activity_start('exported_activity')
             mobsf_api.dynamic_ttl_ssl_test()
-            print("Performing Frida Instrumentation")
-        
-        except Exception as e:
-            print("Please check Frida Code")
-        mobsf_api.frida_api_monitor()
-        mobsf_api.frida_get_dependencies_api()
-        mobsf_api.frida_view_logs()
-        #mobsf_api.frida_get_script(script)
-        mobsf_api.dynamic_analysis_stop()
-        mobsf_api.dynamic_jason_report()
-        print("---------------------------------------------------------------")
+            
+            print("The frida code will be here")
+            try:
+                with open(self.frida_script_path, 'r') as file:
+                    frida_code = file.read()
+            except Exception as e:
+                print(f"Error reading the Frida script: {e}")
+                return
+            try:
+                mobsf_api.upload()
+                mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+                print("Performing Frida Instrumentation")
+            
+            except Exception as e:
+                print("Please check Frida Code")
+            mobsf_api.frida_api_monitor()
+            mobsf_api.frida_get_dependencies_api()
+            mobsf_api.frida_view_logs()
+            #mobsf_api.frida_get_script(script)
+
+
+            time.sleep(30)
+            mobsf_api.dynamic_analysis_stop()
+            mobsf_api.dynamic_jason_report()
+            print("---------------------------------------------------------------")
 
     def apk_decryptor(self):
         print("---------------------------------------------------------------")
@@ -358,21 +365,30 @@ class Main:
         print("found_keys :",found_keys)
         decrypted_data = decryptor.decrypt_files(found_keys)
         decryptor.save_decrypted_data(decrypted_data)
+        time.sleep(5)
         output_dir = decryptor.decompile_apk(apk_backup_path)
+        print("output_dir",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
+        print("result_apk",result_apk)
 
         self.load_config()
-        
-        if 'FILE' in self.config and 'FilePath' in self.config['FILE']:
-            existing_paths = self.file_path
-            if result_apk not in existing_paths:
-                existing_paths.append(result_apk)
+        apk_files = [file for file in os.listdir(result_apk) if file.endswith('.apk')]
+
+        if apk_files:
+            if 'FILE' in self.config and 'FilePath' in self.config['FILE']:
+                existing_paths = self.config['FILE']['FilePath'].split(', ')
+                for apk_file in apk_files:
+                    apk_path = os.path.join(result_apk, apk_file)
+                    if apk_path not in existing_paths:
+                        existing_paths.append(apk_path)
                 self.config['FILE']['FilePath'] = ', '.join(existing_paths)
-                self.save_config()
-                return
+                self.save_config()  
+            else:
+                print("Error: 'FILE' section or 'FilePath' key not found in config file.")
         else:
-            print("Error: 'FILE' section or 'FilePath' key not found in config file.")
-            return
+            print(f"No .apk files found in directory {result_apk}.")
+        return
+
         
 if __name__ == "__main__":
     main = Main()
