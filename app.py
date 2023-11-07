@@ -4,8 +4,8 @@ import configparser
 from mobSF_rest_API import MobSF_API
 import subprocess
 import requests
-import threading
 import time
+from decrypt_apk import APKDecryptor
 
 class Main:
     def __init__(self):
@@ -20,7 +20,8 @@ class Main:
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath']).split(',')
         self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
         self.frida_script_path = self.config['Frida'].get('Frida_Script', self.config['DEFAULT']['Frida_Script'])
-
+        self.encryption_method = self.config['Encryption_method'].get('encryption_method', self.config['DEFAULT']['Encryption_method'])
+        
     def save_config(self):
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
@@ -59,6 +60,9 @@ class Main:
             
             elif command[0] == "frida" and len(command) > 1 and command[1] == "analysis":
                 self.frida_analysis()
+            
+            elif command[0] == "decrypt" and len(command) > 1 and command[1] == "apk":
+                self.apk_decryptor()
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
                 self.dynamic_analysis_stop()
@@ -99,6 +103,7 @@ class Main:
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
             "frida analysis":"Using your frida script and Dynamic Analysis",
+            "decrypt apk":"Decrypt APK, Find Decrypt Key and Decrypt APK and Save Path",
             "exit": "Exit shell"
         }
 
@@ -316,11 +321,6 @@ class Main:
         print("---------------------------------------------------------------")
         selected_file_path = self.dynamic_analysis_setting()
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-        mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-         
         try:
             with open(self.frida_script_path, 'r') as file:
                 frida_code = file.read()
@@ -330,6 +330,9 @@ class Main:
         try:
             mobsf_api.upload()
             mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+            mobsf_api.dynamic_analysis_activity_start('activity')
+            mobsf_api.dynamic_analysis_activity_start('exported_activity')
+            mobsf_api.dynamic_ttl_ssl_test()
             print("Performing Frida Instrumentation")
         
         except Exception as e:
@@ -342,6 +345,35 @@ class Main:
         mobsf_api.dynamic_jason_report()
         print("---------------------------------------------------------------")
 
+    def apk_decryptor(self):
+        print("---------------------------------------------------------------")
+        print("Decrypt APK")
+        apk_path = self.choose_file_path()
+        decryptor = APKDecryptor(apk_path, self.encryption_method)
+        apk_backup_path=decryptor.backup_apk_file()
+        decryptor.unzip_apk()
+        so_files_paths = decryptor.find_lib()
+        found_keys = decryptor.process_so_files(so_files_paths)
+        print("so_files_path :",so_files_paths)
+        print("found_keys :",found_keys)
+        decrypted_data = decryptor.decrypt_files(found_keys)
+        decryptor.save_decrypted_data(decrypted_data)
+        output_dir = decryptor.decompile_apk(apk_backup_path)
+        result_apk = decryptor.repackaging_apk(output_dir)
+
+        self.load_config()
+        
+        if 'FILE' in self.config and 'FilePath' in self.config['FILE']:
+            existing_paths = self.file_path
+            if result_apk not in existing_paths:
+                existing_paths.append(result_apk)
+                self.config['FILE']['FilePath'] = ', '.join(existing_paths)
+                self.save_config()
+                return
+        else:
+            print("Error: 'FILE' section or 'FilePath' key not found in config file.")
+            return
+        
 if __name__ == "__main__":
     main = Main()
     main.start()
