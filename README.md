@@ -55,3 +55,18 @@ Analyze Activities, Exported Activities, TTL Test and Make Report.
 You can get a report.jason about your apk.
 ![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/6e032a2d-602c-41c4-b139-fea161f62883)
 
+### Decrypt APK
+
+Input CLK "decrypt apk", Wait few minutes.
+
+Decrypt APK If .dex file encrypted and Repackaging to APK file
+
+![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/be562e86-98cb-465d-8253-74ccdc9e581b)
+![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/72be5b18-6e6b-485d-8c0f-c147348c61a3)
+Decrypt APK : unzip APK include Decrypt dex file 
+
+Original APK : unzip APK original
+
+Original [APK Name].apk : original your apk, just copied
+
+[APK Name] : Original Zip APK
