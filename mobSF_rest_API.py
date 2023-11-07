@@ -260,7 +260,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash,
                 'scripts[]':scripts}
-        response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
+        response = requests.post(f'{self.server}/api/v1/frida/get_script', data=data, headers=headers)
         print("Frida Frida Get Script : ",response.text)
 
 
