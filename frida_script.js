@@ -1,23 +1,18 @@
 function hook(){
-	Java.perform(function(){
-		var handler = Java.use("android.os.Handler");
-		var sendMessage = handler.sendEmptyMessage.overload("int");
-		sendMessage.implementation = function(param){
-			var retval = sendMessage.call(this, param);
+	bypassLocale();
+	bypassRootDetection1();
+	bypassRootDetection2();
+	bypassEmulatorDetection();
 
-			bypassLocale();
-			bypassRootDetection1();
-			bypassRootDetection2();
-			bypassEmulatorDetection();
-
-			return retval;
-		}
-	});
+	bypassADBDetection();
+	bypassVPNDetection();
+	bypassProxyDetection();
 }
 
 function bypassLocale(){
 	Java.perform(function(){
-		Java.use("java.util.Locale").getLanguage.overload().implementation = function(){
+		var getLanguage = Java.use("java.util.Locale").getLanguage.overload();
+		getLanguage.implementation = function(){
 			return "ko";
 		}
 	});
@@ -55,6 +50,45 @@ function bypassEmulatorDetection(){
 				return Java.use("int").$new(-1);
 			}
 			return indexof.call(this, compareStr);
+		}
+	});
+}
+
+function bypassADBDetection(){
+	Java.perform(function(){
+		var Secure = Java.use("android.provider.Settings$Secure");
+		var getInt = Secure.getInt.overload("android.content.ContentResolver", "java.lang.String", "int");
+		getInt.implementation = function(resolver, name, def){
+			if(name == "adb_enabled"){
+				return Java.use("int").$new(0);
+			}
+			return getInt.call(this, resolver, name, def);
+		}
+	});
+}
+
+function bypassVPNDetection(){
+	Java.perform(function(){
+		var equals = Java.use("java.lang.String").equals.overload("java.lang.Object");
+		equals.implementation = function(compareStr){
+			if(compareStr == "tun0" || compareStr == "ppp0"){
+				console.log("try to bypass VPN check!!");
+				return false;
+			}
+			return equals.call(this, compareStr);
+		}
+	});
+}
+
+function bypassProxyDetection(){
+	Java.perform(function(){
+		var system = Java.use("java.lang.System");
+		var getProperty = system.getProperty.overload("java.lang.String");
+		getProperty.implementation = function(key){
+			if(key == "http.proxyHost" || key == "http.proxyPort"){
+				return null;
+			}
+			return getProperty.call(system, key);
 		}
 	});
 }
