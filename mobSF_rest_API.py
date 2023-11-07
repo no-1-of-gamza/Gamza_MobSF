@@ -76,7 +76,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/report_json', data=data, headers=headers)
-        #print(response.text)
+        print(response.text)
 
     def delete(self):
         """Delete Scan Result"""
@@ -148,7 +148,7 @@ class MobSF_API:
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/dynamic/report_json', data=data, headers=headers)
         response_json = response.json()
-        #print(json.dumps(response_json, indent=4))
+        print(json.dumps(response_json, indent=4))
         current_time = datetime.now()
         date_str = current_time.strftime("%Y-%m-%d")
         filename = f"dynamic_report_{self.scan_hash}_{date_str}.json"
@@ -262,7 +262,6 @@ class MobSF_API:
                 'scripts[]':scripts}
         response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
         print("Frida Frida Get Script : ",response.text)
-
 
 
 

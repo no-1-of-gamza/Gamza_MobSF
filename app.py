@@ -314,8 +314,8 @@ class Main:
 
     def frida_analysis(self):
         print("---------------------------------------------------------------")
-        self.dynamic_analysis_setting()
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        selected_file_path = self.dynamic_analysis_setting()
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         mobsf_api.dynamic_analysis_activity_start('activity')
         mobsf_api.dynamic_analysis_activity_start('exported_activity')
