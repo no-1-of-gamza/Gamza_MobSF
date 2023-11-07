@@ -368,29 +368,10 @@ class Main:
         time.sleep(5)
         print(apk_backup_path)
         output_dir = decryptor.decompile_apk(apk_path, apk_backup_path=apk_backup_path)
-        time.sleep(5)
+        time.sleep(10)
         print("output_dir",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
         print("result_apk",result_apk)
-
-        self.load_config()
-        apk_files = [file for file in os.listdir(result_apk) if file.endswith('.apk')]
-
-        if apk_files:
-            if 'FILE' in self.config and 'FilePath' in self.config['FILE']:
-                existing_paths = self.config['FILE']['FilePath'].split(', ')
-                for apk_file in apk_files:
-                    apk_path = os.path.join(result_apk, apk_file)
-                    if apk_path not in existing_paths:
-                        existing_paths.append(apk_path)
-                self.config['FILE']['FilePath'] = ', '.join(existing_paths)
-                self.save_config()  
-            else:
-                print("Error: 'FILE' section or 'FilePath' key not found in config file.")
-        else:
-            print(f"No .apk files found in directory {result_apk}.")
-        return
-
         
 if __name__ == "__main__":
     main = Main()
