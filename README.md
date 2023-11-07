@@ -59,6 +59,8 @@ You can get a report.jason about your apk.
 
 Input CLK "decrypt apk", Wait few minutes.
 
+       >> decrypt apk
+
 Decrypt APK If .dex file encrypted and Repackaging to APK file
 
 ![image](https://github.com/no-1-of-gamza/Gamza_MobSF/assets/68416184/be562e86-98cb-465d-8253-74ccdc9e581b)
