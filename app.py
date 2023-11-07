@@ -369,9 +369,8 @@ class Main:
         print(apk_backup_path)
         output_dir = decryptor.decompile_apk(apk_path, apk_backup_path=apk_backup_path)
         time.sleep(10)
-        print("output_dir",output_dir)
+        print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
-        print("result_apk",result_apk)
         
 if __name__ == "__main__":
     main = Main()
