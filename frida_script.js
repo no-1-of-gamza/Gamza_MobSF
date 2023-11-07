@@ -72,7 +72,6 @@ function bypassVPNDetection(){
 		var equals = Java.use("java.lang.String").equals.overload("java.lang.Object");
 		equals.implementation = function(compareStr){
 			if(compareStr == "tun0" || compareStr == "ppp0"){
-				console.log("try to bypass VPN check!!");
 				return false;
 			}
 			return equals.call(this, compareStr);
