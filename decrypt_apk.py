@@ -465,22 +465,3 @@ class APKDecryptor:
                 print(f"An unexpected error occurred while processing {so_file_path}: {e}")
 
         return all_keys
-
- 
-if __name__ == "__main__":
-
-    apk_path = 'C:\\Users\\EJ\\Desktop\\sample.apk'
-    encryption_method = 'AES-128-ECB'
-    key = b'dbcdcfghijklmaop'
-    
-    decryptor = APKDecryptor(apk_path, encryption_method)
-    apk_backup_path=decryptor.backup_apk_file()
-    decryptor.unzip_apk()
-    so_files_paths = decryptor.find_lib()
-    found_keys = decryptor.process_so_files(so_files_paths)
-    print("so_files_path :",so_files_paths)
-    print("found_keys :",found_keys)
-    decrypted_data = decryptor.decrypt_files(found_keys)
-    decryptor.save_decrypted_data(decrypted_data)
-    output_dir = decryptor.decompile_apk(apk_backup_path)
-    result_apk = decryptor.repackaging_apk(output_dir)
