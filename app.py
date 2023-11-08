@@ -57,9 +57,6 @@ class Main:
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
                 self.dynamic_analysis()
             
-            elif command[0] == "frida" and len(command) > 1 and command[1] == "analysis":
-                self.frida_analysis()
-            
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
                 self.dynamic_analysis_stop()
                         
@@ -98,7 +95,6 @@ class Main:
             "analysis":"Static Analysis and Dynamic Analysis",
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
-            "frida analysis":"Using your frida script and Dynamic Analysis",
             "exit": "Exit shell"
         }
 
@@ -290,22 +286,6 @@ class Main:
             
             print("---------------------------------------------------------------")
             return selected_file_path
-            
-    def dynamic_analysis(self):
-        selected_file_path = self.dynamic_analysis_setting()
-        if not selected_file_path:
-            print("invalid file path.")
-            print("---------------------------------------------------------------")
-            return
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-        mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-
-        time.sleep(20)
-        mobsf_api.dynamic_analysis_stop()
-        mobsf_api.dynamic_jason_report()
 
     def dynamic_analysis_stop(self):
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
@@ -313,9 +293,14 @@ class Main:
         print("Dynamic analysis is stop.")
         return
 
-    def frida_analysis(self):
+    def dynamic_analysis(self):
         print("---------------------------------------------------------------")
         selected_file_path = self.dynamic_analysis_setting()
+        if not selected_file_path:
+            print("invalid file path.")
+            print("---------------------------------------------------------------")
+            return
+
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         
