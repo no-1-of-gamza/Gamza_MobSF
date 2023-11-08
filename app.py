@@ -43,7 +43,7 @@ class Main:
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
-                self.exit(0)
+                self.exit()
 
             elif command[0] == "help":
                 self.help()
