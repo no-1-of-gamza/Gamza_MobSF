@@ -6,6 +6,8 @@ import subprocess
 import requests
 import time
 from decrypt_apk import APKDecryptor
+import shutil
+import zipfile
 
 class Main:
     def __init__(self):
@@ -66,6 +68,9 @@ class Main:
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
                 self.dynamic_analysis_stop()
+            
+            elif command[0] == "nested":
+                self.nested_check()
                         
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -371,6 +376,45 @@ class Main:
         time.sleep(10)
         print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
+
+    def nested_check(self):
+        selected_file_path = self.choose_file_path()
+        current_dir_path = os.getcwd()
+
+        # 압축 파일 생성
+        zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
+        shutil.copy(selected_file_path, zip_file_path)
+
+        # 압축 파일 해제할 디렉토리 생성
+        zip_dir_path = current_dir_path + "/nested_apk"
+        if not os.path.exists(zip_dir_path):
+            os.mkdir(zip_dir_path)
+            print("Directory completed creation")
+        else:
+            print("Directory already exists")
+    
+        # 압축 해제
+        with zipfile.ZipFile(zip_file_path, 'r') as unzip:
+            unzip.extractall(zip_dir_path)
+    
+        # nested apk 여부 확인
+        assets = zip_dir_path + "/assets"
+        apk_files = []
+        if os.path.exists(assets):
+            file_list = os.listdir(assets)
+            for file in file_list:
+                if file.endswith('.apk'):
+                    apk_files.append(file)
+            has_nested_apk = bool(apk_files)
+            print("Confirmation complete")
+        else:
+            print("Directory does not exist")
+        
+        # nested apk 분석
+        if has_nested_apk:
+            self.file_path.append(assets + "/" + apk_files[0])
+            print("The nested apk file path has been added. Please proceed with the analysis.")
+
         
 if __name__ == "__main__":
     main = Main()
