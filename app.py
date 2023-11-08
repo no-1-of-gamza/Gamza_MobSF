@@ -8,6 +8,7 @@ import time
 from decrypt_apk import APKDecryptor
 import shutil
 import zipfile
+from datetime import datetime
 
 class Main:
     def __init__(self):
@@ -377,15 +378,17 @@ class Main:
         time.sleep(10)
         print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
-
+        time.sleep(5)
         if result_apk:
             self.file_path.append(result_apk)
             print("The result apk file path has been added. Please proceed with the analysis.")
 
     def nested_check(self):
         print("---------------------------------------------------------------")
+        date_time_format = datetime.now().strftime("%Y%m%d_%H%M")
         
         selected_file_path = self.choose_file_path()
+        
         if os.path.exists(selected_file_path) == False:
             print(f"Error: Invalid Path - {selected_file_path}")
             print("---------------------------------------------------------------")
@@ -396,6 +399,7 @@ class Main:
         shutil.copy(selected_file_path, zip_file_path)
 
         zip_dir_path = current_dir_path + "/nested_apk"
+        zip_dir_path = os.path.join(zip_dir_path, date_time_format)
         if not os.path.exists(zip_dir_path):
             os.mkdir(zip_dir_path)
             print("Directory completed creation")
