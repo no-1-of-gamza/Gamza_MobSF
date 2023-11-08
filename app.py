@@ -39,7 +39,7 @@ class Main:
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
-                self.exit()
+                self.exit(0)
 
             elif command[0] == "help":
                 self.help()
@@ -216,7 +216,6 @@ class Main:
                 mobsf_api.scan()
                 mobsf_api.json_resp()
                 mobsf_api.pdf()
-                mobsf_api.delete()
         else:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
@@ -254,7 +253,7 @@ class Main:
         self.run_emulator()
         print("Please wait to set dynamic analysis")
 
-        time.sleep(60)
+        time.sleep(20)
 
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -303,6 +302,8 @@ class Main:
         mobsf_api.dynamic_analysis_activity_start('activity')
         mobsf_api.dynamic_analysis_activity_start('exported_activity')
         mobsf_api.dynamic_ttl_ssl_test()
+
+        time.sleep(20)
         mobsf_api.dynamic_analysis_stop()
         mobsf_api.dynamic_jason_report()
 
@@ -317,10 +318,7 @@ class Main:
         selected_file_path = self.dynamic_analysis_setting()
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-         
+        
         try:
             with open(self.frida_script_path, 'r') as file:
                 frida_code = file.read()
@@ -328,16 +326,22 @@ class Main:
             print(f"Error reading the Frida script: {e}")
             return
         try:
-            mobsf_api.upload()
             mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
             print("Performing Frida Instrumentation")
-        
         except Exception as e:
             print("Please check Frida Code")
-        mobsf_api.frida_api_monitor()
+
         mobsf_api.frida_get_dependencies_api()
+
+        mobsf_api.dynamic_analysis_activity_test("activity")
+        mobsf_api.dynamic_analysis_activity_test("exported")
+        mobsf_api.frida_api_monitor()
+
+        mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+        mobsf_api.dynamic_ttl_ssl_test()
         mobsf_api.frida_view_logs()
-        #mobsf_api.frida_get_script(script)
+
+        time.sleep(20)
         mobsf_api.dynamic_analysis_stop()
         mobsf_api.dynamic_jason_report()
         print("---------------------------------------------------------------")

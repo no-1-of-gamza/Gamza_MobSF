@@ -116,6 +116,18 @@ class MobSF_API:
         response = requests.post(f'{self.server}/api/v1/dynamic/stop_analysis', data=data, headers=headers)
         print("Dynamic Analysis Stop : ",response.text)
 
+    def dynamic_analysis_activity_test(self, activity_type):
+        if not self.scan_hash:
+            print("No file uploaded or hash not found")
+            return
+        headers = {'Authorization': self.api_key}
+        data = {'hash': self.scan_hash,
+                'test' : activity_type}
+        response = requests.post(f'{self.server}/api/v1/android/activity', data=data, headers=headers)
+        if response.status_code == 200:
+            print("Dynamic Analysis Activity Tester: Success")
+        else:
+            print("Dynamic Analysis Activity Tester: Failed")
 
     def dynamic_analysis_activity_start(self,activity=''):
         """Dynamic analysis Activity Tester API"""
@@ -262,6 +274,4 @@ class MobSF_API:
                 'scripts[]':scripts}
         response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
         print("Frida Frida Get Script : ",response.text)
-
-
 
