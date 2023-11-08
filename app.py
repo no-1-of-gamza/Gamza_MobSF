@@ -384,7 +384,12 @@ class Main:
 
     def nested_check(self):
         print("---------------------------------------------------------------")
+        
         selected_file_path = self.choose_file_path()
+        if os.path.exists(selected_file_path) == False:
+            print(f"Error: Invalid Path - {selected_file_path}")
+            print("---------------------------------------------------------------")
+            return
         current_dir_path = os.getcwd()
 
         zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
