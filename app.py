@@ -43,7 +43,7 @@ class Main:
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
-                self.exit()
+                self.exit(0)
 
             elif command[0] == "help":
                 self.help()
@@ -60,9 +60,6 @@ class Main:
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
                 self.dynamic_analysis()
-            
-            elif command[0] == "frida" and len(command) > 1 and command[1] == "analysis":
-                self.frida_analysis()
             
             elif command[0] == "decrypt" and len(command) > 1 and command[1] == "apk":
                 self.apk_decryptor()
@@ -108,7 +105,6 @@ class Main:
             "analysis":"Static Analysis and Dynamic Analysis",
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
-            "frida analysis":"Using your frida script and Dynamic Analysis",
             "decrypt apk":"Decrypt APK, Find Decrypt Key and Decrypt APK and Repackaging",
             "nested check":"Decompile APK and Find Nested APK",
             "exit": "Exit shell"
@@ -229,7 +225,6 @@ class Main:
                 mobsf_api.scan()
                 mobsf_api.json_resp()
                 mobsf_api.pdf()
-                mobsf_api.delete()
         else:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
@@ -267,7 +262,7 @@ class Main:
         self.run_emulator()
         print("Please wait to set dynamic analysis")
 
-        time.sleep(60)
+        time.sleep(20)
 
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -304,20 +299,6 @@ class Main:
             
             print("---------------------------------------------------------------")
             return selected_file_path
-            
-    def dynamic_analysis(self):
-        selected_file_path = self.dynamic_analysis_setting()
-        if not selected_file_path:
-            print("invalid file path.")
-            print("---------------------------------------------------------------")
-            return
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-        mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-        mobsf_api.dynamic_analysis_stop()
-        mobsf_api.dynamic_jason_report()
 
     def dynamic_analysis_stop(self):
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
@@ -325,39 +306,43 @@ class Main:
         print("Dynamic analysis is stop.")
         return
 
-    def frida_analysis(self):
+    def dynamic_analysis(self):
+        print("---------------------------------------------------------------")
+        selected_file_path = self.dynamic_analysis_setting()
+        if not selected_file_path:
+            print("invalid file path.")
             print("---------------------------------------------------------------")
-            selected_file_path = self.dynamic_analysis_setting()
-            mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-            mobsf_api.upload()
-            mobsf_api.dynamic_analysis_activity_start('activity')
-            mobsf_api.dynamic_analysis_activity_start('exported_activity')
-            mobsf_api.dynamic_ttl_ssl_test()
-            
-            print("The frida code will be here")
-            try:
-                with open(self.frida_script_path, 'r') as file:
-                    frida_code = file.read()
-            except Exception as e:
-                print(f"Error reading the Frida script: {e}")
-                return
-            try:
-                mobsf_api.upload()
-                mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
-                print("Performing Frida Instrumentation")
-            
-            except Exception as e:
-                print("Please check Frida Code")
-            mobsf_api.frida_api_monitor()
-            mobsf_api.frida_get_dependencies_api()
-            mobsf_api.frida_view_logs()
-            #mobsf_api.frida_get_script(script)
+            return
 
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
+        mobsf_api.upload()
+        
+        try:
+            with open(self.frida_script_path, 'r') as file:
+                frida_code = file.read()
+        except Exception as e:
+            print(f"Error reading the Frida script: {e}")
+            return
+        try:
+            mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+            print("Performing Frida Instrumentation")
+        except Exception as e:
+            print("Please check Frida Code")
 
-            time.sleep(30)
-            mobsf_api.dynamic_analysis_stop()
-            mobsf_api.dynamic_jason_report()
-            print("---------------------------------------------------------------")
+        mobsf_api.frida_get_dependencies_api()
+
+        mobsf_api.dynamic_analysis_activity_test("activity")
+        mobsf_api.dynamic_analysis_activity_test("exported")
+        mobsf_api.frida_api_monitor()
+
+        mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+        mobsf_api.dynamic_ttl_ssl_test()
+        mobsf_api.frida_view_logs()
+
+        time.sleep(20)
+        mobsf_api.dynamic_analysis_stop()
+        mobsf_api.dynamic_jason_report()
+        print("---------------------------------------------------------------")
 
     def apk_decryptor(self):
         print("---------------------------------------------------------------")
@@ -425,7 +410,6 @@ class Main:
             self.file_path.append(assets + "/" + apk_files[0])
             print("The nested apk file path has been added. Please proceed with the analysis.")
             print("---------------------------------------------------------------")
-
         
 if __name__ == "__main__":
     main = Main()
