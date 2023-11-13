@@ -262,9 +262,9 @@ class APKDecryptor:
         try:
             current_script_dir = os.path.dirname(os.path.realpath(__file__))
             apktool_path = os.path.join(current_script_dir, "apktool.bat")
-            output_dir = os.path.join(os.path.dirname(apk_backup_path),"apk_tool_orginal_decrypt" ,os.path.splitext(os.path.basename(apk_path))[0])
+            output_dir = os.path.join(os.path.dirname(apk_backup_path),"apk_tool_orginal_decrypt" ,os.path.splitext(os.path.basename(self.original_apk))[0])
             
-            command = [apktool_path, "d", apk_path, "-o", output_dir]
+            command = [apktool_path, "d", self.original_apk, "-o", output_dir]
             
             result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
 
