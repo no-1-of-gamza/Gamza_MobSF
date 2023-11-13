@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item android:icon="@android:drawable/ic_menu_search" android:id="@id/search" android:title="스파이앱 탐지" />
+        <item android:icon="@android:drawable/ic_menu_today" android:id="@id/history" android:title="스파이앱 탐지 기록" />
+        <item android:icon="@android:drawable/ic_menu_set_as" android:id="@id/cop" android:title="경찰청 사이버캅" />
+    </group>
+</menu>

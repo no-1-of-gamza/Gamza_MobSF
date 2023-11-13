@@ -1,0 +1,24 @@
+version: 2.9.0
+apkFileName: sample.apk
+isFrameworkApk: false
+usesFramework:
+  ids:
+  - 1
+  tag: null
+sdkInfo:
+  minSdkVersion: 23
+  targetSdkVersion: 28
+packageInfo:
+  forcedPackageId: 127
+  renameManifestPackage: null
+versionInfo:
+  versionCode: 20
+  versionName: 2.0
+resourcesAreCompressed: false
+sharedLibrary: false
+sparseResources: false
+unknownFiles:
+  error_prone/Annotations.gwt.xml: 8
+  jsr305_annotations/Jsr305_annotations.gwt.xml: 8
+  third_party/java_src/error_prone/project/annotations/Annotations.gwt.xml: 8
+  third_party/java_src/error_prone/project/annotations/Google_internal.gwt.xml: 8

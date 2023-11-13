@@ -332,10 +332,10 @@ class APKDecryptor:
 
             if result.returncode == None:
                 print("APK successfully built.")
-                print(result.stdout)
+                #print(result.stdout)
                 print("---------------------------------------------------------------") 
                 result_apk = os.path.join(destination_path, "dist")
-                time.sleep(5)
+                time.sleep(10)
                 try:
                     shutil.move(result_apk, self.output_directory_path)
                     print("Saeve decrypt APK to", result_apk)
@@ -348,7 +348,7 @@ class APKDecryptor:
                 print("APK build failed.")
                 print(result.stderr)
                 print("---------------------------------------------------------------")
-            print("---------------------------------------------------------------")       
+                 
         except FileNotFoundError as e:
             print("File was not found. Please ensure that it is installed and added to your PATH.")
             print("---------------------------------------------------------------")
@@ -465,3 +465,8 @@ class APKDecryptor:
                 print(f"An unexpected error occurred while processing {so_file_path}: {e}")
 
         return all_keys
+
+
+    """"""""""""""""""""""""""""""""""""
+    """"Resign              APK"""""""""
+    """"""""""""""""""""""""""""""""""""

@@ -43,7 +43,7 @@ class Main:
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
-                self.exit(0)
+                sys.exit(0)
 
             elif command[0] == "help":
                 self.help()
@@ -92,12 +92,9 @@ class Main:
         
                                                                                                                                                                          
         To know how to use, use 'help' command.
-        Have a nice time ~ ( ･ᴗ･ )♡ ~
+        Have a nice time ~ ( ^ᴗ^ )♡ ~
         """
-        print(welcome_message)
-
-    def exit(self):
-        sys.exit(0)        
+        print(welcome_message)       
         
     def help(self):
         help = {
@@ -360,7 +357,7 @@ class Main:
         decryptor.save_decrypted_data(decrypted_data)
         time.sleep(5)
         print(apk_backup_path)
-        output_dir = decryptor.decompile_apk(apk_path, apk_backup_path=apk_backup_path)
+        output_dir = decryptor.decompile_apk(apk_backup_path)
         time.sleep(10)
         print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
