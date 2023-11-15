@@ -334,12 +334,16 @@ class APKDecryptor:
                 print("APK successfully built.")
                 #print(result.stdout)
                 print("---------------------------------------------------------------") 
-                result_apk = os.path.join(destination_path, "dist")
+                result_apk = os.path.join(self.output_directory_path,"dist")
                 time.sleep(10)
                 try:
                     shutil.move(result_apk, self.output_directory_path)
-                    print("Saeve decrypt APK to", result_apk)
+                    print("Saeve decrypt APK to", self.output_directory_path)
                     print("---------------------------------------------------------------")
+                    time.sleep(5)
+                    
+                    resign_apk_path = os.path.join(self.output_directory_path,"dist",os.path.splitext(os.path.basename(self.original_apk))[0]+"_result.apk" )
+                    self.resign_apk(resign_apk_path)
                     return result_apk
                 except Exception as e :
                     print(f"An unexpected error occurred while moving repackaged APK: {e}")
@@ -470,3 +474,37 @@ class APKDecryptor:
     """"""""""""""""""""""""""""""""""""
     """"Resign              APK"""""""""
     """"""""""""""""""""""""""""""""""""
+
+    def resign_apk(self, result_apk):
+
+        keystore_file = os.path.splitext(os.path.basename(self.original_apk))[0]+".keystore"
+        alias = os.path.splitext(os.path.basename(self.original_apk))[0]
+        repackaged_app = result_apk
+        
+        # Create the command string.
+        command = f"keytool -genkey -v -keystore {keystore_file} -alias {alias} -keyalg RSA -keysize 2048"
+
+        # Run the command using subprocess and handle input
+        try:
+            process = subprocess.Popen(command, shell=True, text=True,stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, error = process.communicate(input="111111\n111111\n" + " \n" * 6+"yes\n")
+            print(output)
+            if process.returncode == 0:
+                print("Key generation successfully. test sign password : 111111")
+
+        except Exception as e:
+            print(f"Unknown error occurred: {e}")
+
+        time.sleep(3)
+
+        try:
+            command = f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore {keystore_file} {repackaged_app} {alias}"
+            process = subprocess.Popen(command, shell=True, text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, error = process.communicate(input="111111\n")
+            print(output)
+            if process.returncode == 0:
+                print("Signing completed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e}")
+        except Exception as e:
+            print(f"Unknown error occurred: {e}")

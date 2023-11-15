@@ -365,7 +365,6 @@ class Main:
         if result_apk:
             self.file_path.append(result_apk)
             print("The result apk file path has been added. Please proceed with the analysis.")
-
     def nested_check(self):
         print("---------------------------------------------------------------")
         date_time_format = datetime.now().strftime("%Y%m%d_%H%M")
