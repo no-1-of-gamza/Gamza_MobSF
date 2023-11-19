@@ -1,0 +1,6 @@
+configparser
+requests
+requests_toolbelt
+pycryptodome
+pyelftools
+capstone

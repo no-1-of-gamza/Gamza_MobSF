@@ -4,8 +4,11 @@ import configparser
 from mobSF_rest_API import MobSF_API
 import subprocess
 import requests
-import threading
 import time
+from decrypt_apk import APKDecryptor
+import shutil
+import zipfile
+from datetime import datetime
 
 class Main:
     def __init__(self):
@@ -20,7 +23,8 @@ class Main:
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath']).split(',')
         self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
         self.frida_script_path = self.config['Frida'].get('Frida_Script', self.config['DEFAULT']['Frida_Script'])
-
+        self.encryption_method = self.config['Encryption_method'].get('encryption_method', self.config['DEFAULT']['Encryption_method'])
+        
     def save_config(self):
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
@@ -39,7 +43,7 @@ class Main:
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
-                self.exit()
+                sys.exit(0)
 
             elif command[0] == "help":
                 self.help()
@@ -57,11 +61,14 @@ class Main:
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "analysis":
                 self.dynamic_analysis()
             
-            elif command[0] == "frida" and len(command) > 1 and command[1] == "analysis":
-                self.frida_analysis()
+            elif command[0] == "decrypt" and len(command) > 1 and command[1] == "apk":
+                self.apk_decryptor()
             
             elif command[0] == "dynamic" and len(command) > 1 and command[1] == "stop":
                 self.dynamic_analysis_stop()
+            
+            elif command[0] == "nested" and len(command) > 1 and command[1] == "check":
+                self.nested_check()
                         
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -85,12 +92,9 @@ class Main:
         
                                                                                                                                                                          
         To know how to use, use 'help' command.
-        Have a nice time ~ ( ･ᴗ･ )♡ ~
+        Have a nice time ~ ( ^ᴗ^ )♡ ~
         """
-        print(welcome_message)
-
-    def exit(self):
-        sys.exit(0)        
+        print(welcome_message)       
         
     def help(self):
         help = {
@@ -98,7 +102,8 @@ class Main:
             "analysis":"Static Analysis and Dynamic Analysis",
             "static analysis":"Static Analysis File and Report to Pdf",
             "dynamic analysis":"Dynamic Analysis, activity, exported activity, tls test",
-            "frida analysis":"Using your frida script and Dynamic Analysis",
+            "decrypt apk":"Decrypt APK, Find Decrypt Key and Decrypt APK and Repackaging",
+            "nested check":"Decompile APK and Find Nested APK",
             "exit": "Exit shell"
         }
 
@@ -143,6 +148,7 @@ class Main:
             print("MobSF Path: {}\n".format(self.mobsf_path))
         else:
             print("MobSF Path: MobSF Path is not set.")
+
         print("---------------------------------------------------------------")
 
     def server_is_running(self):
@@ -216,7 +222,6 @@ class Main:
                 mobsf_api.scan()
                 mobsf_api.json_resp()
                 mobsf_api.pdf()
-                mobsf_api.delete()
         else:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
@@ -254,7 +259,7 @@ class Main:
         self.run_emulator()
         print("Please wait to set dynamic analysis")
 
-        time.sleep(60)
+        time.sleep(20)
 
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -291,20 +296,6 @@ class Main:
             
             print("---------------------------------------------------------------")
             return selected_file_path
-            
-    def dynamic_analysis(self):
-        selected_file_path = self.dynamic_analysis_setting()
-        if not selected_file_path:
-            print("invalid file path.")
-            print("---------------------------------------------------------------")
-            return
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
-        mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-        mobsf_api.dynamic_analysis_stop()
-        mobsf_api.dynamic_jason_report()
 
     def dynamic_analysis_stop(self):
         mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
@@ -312,15 +303,17 @@ class Main:
         print("Dynamic analysis is stop.")
         return
 
-    def frida_analysis(self):
+    def dynamic_analysis(self):
         print("---------------------------------------------------------------")
-        self.dynamic_analysis_setting()
-        mobsf_api = MobSF_API(self.server_ip, self.api_key, self.file_path)
+        selected_file_path = self.dynamic_analysis_setting()
+        if not selected_file_path:
+            print("invalid file path.")
+            print("---------------------------------------------------------------")
+            return
+
+        mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
-        mobsf_api.dynamic_analysis_activity_start('activity')
-        mobsf_api.dynamic_analysis_activity_start('exported_activity')
-        mobsf_api.dynamic_ttl_ssl_test()
-         
+        
         try:
             with open(self.frida_script_path, 'r') as file:
                 frida_code = file.read()
@@ -328,20 +321,93 @@ class Main:
             print(f"Error reading the Frida script: {e}")
             return
         try:
-            mobsf_api.upload()
             mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
             print("Performing Frida Instrumentation")
-        
         except Exception as e:
             print("Please check Frida Code")
-        mobsf_api.frida_api_monitor()
+
         mobsf_api.frida_get_dependencies_api()
+
+        mobsf_api.dynamic_analysis_activity_test("activity")
+        mobsf_api.dynamic_analysis_activity_test("exported")
+        mobsf_api.frida_api_monitor()
+
+        mobsf_api.frida_instrument(default_hooks=True, frida_code=frida_code)
+        mobsf_api.dynamic_ttl_ssl_test()
         mobsf_api.frida_view_logs()
-        #mobsf_api.frida_get_script(script)
+
+        time.sleep(20)
         mobsf_api.dynamic_analysis_stop()
         mobsf_api.dynamic_jason_report()
         print("---------------------------------------------------------------")
+        return
 
+    def apk_decryptor(self):
+        print("---------------------------------------------------------------")
+        print("Decrypt APK")
+        apk_path = self.choose_file_path()
+        decryptor = APKDecryptor(apk_path, self.encryption_method)
+        apk_backup_path=decryptor.backup_apk_file()
+        decryptor.unzip_apk()
+        so_files_paths = decryptor.find_lib()
+        found_keys = decryptor.process_so_files(so_files_paths)
+        print("so_files_path :",so_files_paths)
+        print("found_keys :",found_keys)
+        decrypted_data = decryptor.decrypt_files(found_keys)
+        decryptor.save_decrypted_data(decrypted_data)
+        time.sleep(5)
+        print(apk_backup_path)
+        output_dir = decryptor.decompile_apk(apk_backup_path)
+        time.sleep(10)
+        print("output_dir: ",output_dir)
+        result_apk = decryptor.repackaging_apk(output_dir)
+        time.sleep(5)
+        if result_apk:
+            self.file_path.append(result_apk)
+            print("The result apk file path has been added. Please proceed with the analysis.")
+    def nested_check(self):
+        print("---------------------------------------------------------------")
+        date_time_format = datetime.now().strftime("%Y%m%d_%H%M")
+        
+        selected_file_path = self.choose_file_path()
+        
+        if os.path.exists(selected_file_path) == False:
+            print(f"Error: Invalid Path - {selected_file_path}")
+            print("---------------------------------------------------------------")
+            return
+        current_dir_path = os.getcwd()
+
+        zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
+        shutil.copy(selected_file_path, zip_file_path)
+
+        zip_dir_path = current_dir_path + "/nested_apk"
+        zip_dir_path = os.path.join(zip_dir_path, date_time_format)
+        if not os.path.exists(zip_dir_path):
+            os.mkdir(zip_dir_path)
+            print("Directory completed creation")
+        else:
+            print("Directory already exists")
+    
+        with zipfile.ZipFile(zip_file_path, 'r') as unzip:
+            unzip.extractall(zip_dir_path)
+    
+        assets = zip_dir_path + "/assets"
+        apk_files = []
+        if os.path.exists(assets):
+            file_list = os.listdir(assets)
+            for file in file_list:
+                if file.endswith('.apk'):
+                    apk_files.append(file)
+            has_nested_apk = bool(apk_files)
+            print("Confirmation complete")
+        else:
+            print("Directory does not exist")
+        
+        if has_nested_apk:
+            self.file_path.append(assets + "/" + apk_files[0])
+            print("The nested apk file path has been added. Please proceed with the analysis.")
+            print("---------------------------------------------------------------")
+        
 if __name__ == "__main__":
     main = Main()
     main.start()
