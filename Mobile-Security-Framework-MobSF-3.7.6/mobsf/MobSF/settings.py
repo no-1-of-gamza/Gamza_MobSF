@@ -398,6 +398,7 @@ else:
     ANALYZER_IDENTIFIER = os.getenv('MOBSF_ANALYZER_IDENTIFIER', '')
     FRIDA_TIMEOUT = int(os.getenv('MOBSF_FRIDA_TIMEOUT', '4'))
     ACTIVITY_TESTER_SLEEP = int(os.getenv('MOBSF_ACTIVITY_TESTER_SLEEP', '4'))
+    DEFAULT_SCRIPT = os.getenv('MOBSF_DEFAULT_SCRIPT', 'D:\\Goorm\\Project_2_3\\frida_script.js')
     # ==============================================
 
     # ================HTTPS PROXY ===============
