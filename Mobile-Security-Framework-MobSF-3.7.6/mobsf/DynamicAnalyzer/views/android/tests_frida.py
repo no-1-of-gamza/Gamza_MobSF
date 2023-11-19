@@ -317,13 +317,15 @@ def apimon_analysis(app_dir):
 
 def get_dependencies(package, checksum):
     """Get 3rd party dependencies at runtime."""
+    with open(settings.DEFAULT_SCRIPT, "r") as bypass_code:
+        code = bypass_code.read()
     frd = Frida(
         checksum,
         package,
         ['ssl_pinning_bypass', 'debugger_check_bypass', 'root_bypass'],
         ['get_dependencies'],
         None,
-        None,
+        code,
     )
     location = Path(frd.deps)
     if location.exists():
