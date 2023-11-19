@@ -16,6 +16,9 @@ from mobsf.DynamicAnalyzer.tools.webproxy import (
     get_traffic,
     stop_httptools,
 )
+from mobsf.DynamicAnalyzer.views.android.tests_frida import (
+    run_with_instrument,
+)
 
 
 HTTPS = re.compile(r'(GET|POST|HEAD|PUT|DELETE|'
@@ -56,7 +59,7 @@ def run_tls_tests(request, md5_hash, env, package, test_pkg, duration):
     logger.info('Running TLS Misconfiguration Test')
     env.configure_proxy(test_pkg, request)
     env.install_mobsf_ca('remove')
-    env.run_app(package)
+    run_with_instrument(md5_hash, [], [])
     env.wait(duration)
     stop_httptools(get_http_tools_url(request))
     traffic = get_traffic(test_pkg)
@@ -69,7 +72,7 @@ def run_tls_tests(request, md5_hash, env, package, test_pkg, duration):
     env.adb_command(['am', 'force-stop', package], True)
     logger.info('Running TLS Pinning/Certificate Transparency Test')
     env.configure_proxy(test_pkg, request)
-    env.run_app(package)
+    run_with_instrument(md5_hash, [], [])
     env.wait(duration)
     stop_httptools(get_http_tools_url(request))
     traffic = get_traffic(test_pkg)
@@ -82,17 +85,7 @@ def run_tls_tests(request, md5_hash, env, package, test_pkg, duration):
     env.adb_command(['am', 'force-stop', package], True)
     logger.info('Running TLS Pinning/Certificate Transparency Bypass Test')
     env.configure_proxy(test_pkg, request)
-    frd = Frida(
-        md5_hash,
-        package,
-        ['ssl_pinning_bypass', 'debugger_check_bypass', 'root_bypass'],
-        None,
-        None,
-        None,
-    )
-    trd = threading.Thread(target=frd.connect)
-    trd.daemon = True
-    trd.start()
+    run_with_instrument(md5_hash, ['ssl_pinning_bypass', 'debugger_check_bypass', 'root_bypass'], [])
     env.wait(duration)
     stop_httptools(get_http_tools_url(request))
     traffic = get_traffic(test_pkg)

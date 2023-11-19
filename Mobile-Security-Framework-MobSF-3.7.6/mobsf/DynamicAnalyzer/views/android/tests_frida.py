@@ -140,6 +140,22 @@ def instrument(request, api=False):
     return send_response(data, api)
 
 
+def run_with_instrument(md5_hash, default_hooks, auxiliary_hooks):
+    extras = {}
+    package = get_package_name(md5_hash)
+    with open(settings.DEFAULT_SCRIPT, "r") as bypass_code:
+        code = bypass_code.read()
+    frida_obj = Frida(md5_hash,
+                        package,
+                        default_hooks,
+                        auxiliary_hooks,
+                        extras,
+                        code)
+    trd = threading.Thread(target=frida_obj.connect)
+    trd.daemon = True
+    trd.start()
+
+
 def live_api(request, api=False):
     try:
         if api:
