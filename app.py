@@ -215,7 +215,7 @@ class Main:
             return
         current_dir_path = os.getcwd()
 
-        zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
+        zip_file_path = selected_file_path.split('/')[-1] + ".zip"
         shutil.copy(selected_file_path, zip_file_path)
 
         zip_dir_path = current_dir_path + "\\nested_apk\\analysis"
