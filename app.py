@@ -70,7 +70,7 @@ class Main:
                 self.dynamic_analysis_stop()
             
             elif command[0] == "nested" and len(command) > 1 and command[1] == "check":
-                self.nested_check()
+                self.add_nested_path()
                         
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
