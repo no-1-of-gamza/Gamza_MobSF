@@ -205,6 +205,52 @@ class Main:
                 print("No file paths are available.")
                 return None
         
+    def nested_check(self, selected_file_path):
+        print("---------------------------------------------------------------")
+        print("Checking nested apk...")
+        
+        if os.path.exists(selected_file_path) == False:
+            print(f"Error: Invalid Path - {selected_file_path}")
+            print("---------------------------------------------------------------")
+            return
+        current_dir_path = os.getcwd()
+
+        zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
+        shutil.copy(selected_file_path, zip_file_path)
+
+        zip_dir_path = current_dir_path + "\\nested_apk\\analysis"
+        if not os.path.exists(zip_dir_path):
+            os.makedirs(zip_dir_path, exist_ok=True)
+            print("Directory completed creation")
+        else:
+            print("Directory already exists")
+    
+        with zipfile.ZipFile(zip_file_path, 'r') as unzip:
+            unzip.extractall(zip_dir_path)
+    
+        apk_files = []
+        if os.path.exists(zip_dir_path):
+            for root, dirs, files in os.walk(zip_dir_path):
+                for file in files:
+                    if file.endswith('.apk'):
+                        file_path = os.path.join(root, file)
+                        apk_files.append(file_path)
+            print("Confirmation complete")
+        else:
+            print("Directory does not exist")
+        
+        if apk_files:
+            print(len(apk_files), "nested apks were found.")
+        else:
+            print("nested apk was not found.")
+
+        print("Deleting nested apk folder...")
+        try:
+            shutil.rmtree(zip_dir_path)
+        except OSError as e:
+            print(f'Error: {e.filename} - {e.strerror}')
+        print("---------------------------------------------------------------")
+    
     def static_analysis(self):
         print("---------------------------------------------------------------")
         print("Static analyze start...")
@@ -214,6 +260,7 @@ class Main:
             return
 
         selected_file_path = self.choose_file_path()
+        self. nested_check(selected_file_path)
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -313,6 +360,8 @@ class Main:
             print("---------------------------------------------------------------")
             return
 
+        self. nested_check(selected_file_path)
+        
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         
@@ -367,11 +416,13 @@ class Main:
         if result_apk:
             self.file_path.append(result_apk)
             print("The result apk file path has been added. Please proceed with the analysis.")
-    def nested_check(self):
+    
+    def add_nested_path(self):
         print("---------------------------------------------------------------")
         date_time_format = datetime.now().strftime("%Y%m%d_%H%M")
         
         selected_file_path = self.choose_file_path()
+        print("---------------------------------------------------------------")
         
         if os.path.exists(selected_file_path) == False:
             print(f"Error: Invalid Path - {selected_file_path}")
@@ -382,10 +433,10 @@ class Main:
         zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
         shutil.copy(selected_file_path, zip_file_path)
 
-        zip_dir_path = current_dir_path + "/nested_apk"
+        zip_dir_path = current_dir_path + "\\nested_apk"
         zip_dir_path = os.path.join(zip_dir_path, date_time_format)
         if not os.path.exists(zip_dir_path):
-            os.mkdir(zip_dir_path)
+            os.makedirs(zip_dir_path, exist_ok=True)
             print("Directory completed creation")
         else:
             print("Directory already exists")
@@ -393,21 +444,25 @@ class Main:
         with zipfile.ZipFile(zip_file_path, 'r') as unzip:
             unzip.extractall(zip_dir_path)
     
-        assets = zip_dir_path + "/assets"
         apk_files = []
-        if os.path.exists(assets):
-            file_list = os.listdir(assets)
-            for file in file_list:
-                if file.endswith('.apk'):
-                    apk_files.append(file)
-            has_nested_apk = bool(apk_files)
+        if os.path.exists(zip_dir_path):
+            for root, dirs, files in os.walk(zip_dir_path):
+                for file in files:
+                    if file.endswith('.apk'):
+                        file_path = os.path.join(root, file)
+                        apk_files.append(file_path)
             print("Confirmation complete")
         else:
             print("Directory does not exist")
         
-        if has_nested_apk:
-            self.file_path.append(assets + "/" + apk_files[0])
+        if apk_files:
+            print(len(apk_files), "nested apks were found.")
+            for apk in apk_files:
+                self.file_path.append(apk)
             print("The nested apk file path has been added. Please proceed with the analysis.")
+            print("---------------------------------------------------------------")
+        else:
+            print("nested apk was not found.")
             print("---------------------------------------------------------------")
         
 if __name__ == "__main__":
