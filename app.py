@@ -221,7 +221,6 @@ class Main:
         zip_dir_path = current_dir_path + "\\nested_apk\\analysis"
         if not os.path.exists(zip_dir_path):
             os.makedirs(zip_dir_path, exist_ok=True)
-            print("Directory completed creation")
         else:
             print("Directory already exists")
     
@@ -235,7 +234,6 @@ class Main:
                     if file.endswith('.apk'):
                         file_path = os.path.join(root, file)
                         apk_files.append(file_path)
-            print("Confirmation complete")
         else:
             print("Directory does not exist")
         
