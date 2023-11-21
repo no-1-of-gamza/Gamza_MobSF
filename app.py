@@ -240,6 +240,7 @@ class Main:
         
         if apk_files:
             print(len(apk_files), "nested apks were found.")
+            print("---------------------------------------------------------------")
             return apk_files
         else:
             print("nested apk was not found.")
