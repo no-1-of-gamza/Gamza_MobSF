@@ -255,6 +255,7 @@ class Main:
 
         if not self.server_is_running():
             print("MobSF Server is not running. Please start the server before analysis.")
+            print("---------------------------------------------------------------")
             return
 
         selected_file_path = self.choose_file_path()
