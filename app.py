@@ -252,7 +252,7 @@ class Main:
     
     def static_analysis(self):
         print("---------------------------------------------------------------")
-        print("Static analyze start...")
+        print("[Static analysis start...]")
 
         if not self.server_is_running():
             print("MobSF Server is not running. Please start the server before analysis.")
@@ -260,7 +260,6 @@ class Main:
             return
 
         selected_file_path = self.choose_file_path()
-        nested_check_result=self.nested_check(selected_file_path)
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -276,17 +275,27 @@ class Main:
             print("---current seting---")
             self.get_status(self)
 
+        nested_check_result=self.nested_check(selected_file_path)    
+
         if nested_check_result:
                 mobsf_api = MobSF_API(self.server_ip, self.api_key, nested_check_result)
+                print("[Nested APK Static analysis start...]")
+                print("Proceed Automatically Static Reporting nested apk file")
                 mobsf_api.scan()
                 mobsf_api.json_resp()
                 mobsf_api.pdf()
         print("---------------------------------------------------------------")
         
+        apk_path = self.choose_file_path()
+        decryptor = APKDecryptor(apk_path, self.encryption_method)
+        true_dex_files, encrypt_dex_files = decryptor._classify_dex_files(self)
 
+        if encrypt_dex_files :
+            print(f"Encrypted dex file found. : {encrypt_dex_files}")
+            
     def run_emulator(self):
         print("---------------------------------------------------------------")
-        print("Running emnulator start")
+        print("[Running emnulator start]")
 
         if self.server_is_running():
             print("MobSF Server Checking...")
@@ -313,6 +322,7 @@ class Main:
         selected_file_path = self.choose_file_path()
         
         self.run_emulator()
+        print("[Dynamic analysis start...]]")
         print("Please wait to set dynamic analysis")
 
         time.sleep(20)
@@ -444,7 +454,6 @@ class Main:
         zip_dir_path = os.path.join(zip_dir_path, date_time_format)
         if not os.path.exists(zip_dir_path):
             os.makedirs(zip_dir_path, exist_ok=True)
-            print("Directory completed creation")
         else:
             print("Directory already exists")
     
@@ -458,7 +467,6 @@ class Main:
                     if file.endswith('.apk'):
                         file_path = os.path.join(root, file)
                         apk_files.append(file_path)
-            print("Confirmation complete")
         else:
             print("Directory does not exist")
         
