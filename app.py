@@ -234,6 +234,7 @@ class Main:
                     if file.endswith('.apk'):
                         file_path = os.path.join(root, file)
                         apk_files.append(file_path)
+                        return file_path
         else:
             print("Directory does not exist")
         
@@ -259,7 +260,7 @@ class Main:
             return
 
         selected_file_path = self.choose_file_path()
-        self. nested_check(selected_file_path)
+        nested_check_result=self.nested_check(selected_file_path)
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
 
@@ -274,7 +275,14 @@ class Main:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
             self.get_status(self)
+
+        if nested_check_result:
+                mobsf_api = MobSF_API(self.server_ip, self.api_key, nested_check_result)
+                mobsf_api.scan()
+                mobsf_api.json_resp()
+                mobsf_api.pdf()
         print("---------------------------------------------------------------")
+        
 
     def run_emulator(self):
         print("---------------------------------------------------------------")
