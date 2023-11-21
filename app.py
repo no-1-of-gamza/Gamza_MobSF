@@ -292,7 +292,21 @@ class Main:
 
         if encrypt_dex_files :
             print(f"Encrypted dex file found. : {encrypt_dex_files}")
+            decrpyt_yes=input("Do you want me to decrypt the encrypted dex file and extract the report again? <yes/no>:")
             
+            if decrpyt_yes=="yes":
+                result_apk_path=self.apk_decryptor(self)
+                mobsf_api = MobSF_API(self.server_ip, self.api_key, result_apk_path)
+                if self.server_is_running():
+                    print("MobSF Server is Working!")
+                    response_data = mobsf_api.upload()
+                    if response_data:
+                        mobsf_api.scan()
+                        mobsf_api.json_resp()
+                        mobsf_api.pdf()
+            else :
+                return
+
     def run_emulator(self):
         print("---------------------------------------------------------------")
         print("[Running emnulator start]")
