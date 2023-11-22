@@ -234,20 +234,22 @@ class Main:
                     if file.endswith('.apk'):
                         file_path = os.path.join(root, file)
                         apk_files.append(file_path)
-                        return file_path
+            print("Confirmation complete")
         else:
             print("Directory does not exist")
         
         if apk_files:
             print(len(apk_files), "nested apks were found.")
+            print("---------------------------------------------------------------")
+            return apk_files
         else:
             print("nested apk was not found.")
 
-        print("Deleting nested apk folder...")
-        try:
-            shutil.rmtree(zip_dir_path)
-        except OSError as e:
-            print(f'Error: {e.filename} - {e.strerror}')
+#        print("Deleting nested apk folder...")
+#        try:
+#            shutil.rmtree(zip_dir_path)
+#        except OSError as e:
+#            print(f'Error: {e.filename} - {e.strerror}')
         print("---------------------------------------------------------------")
     
     def static_analysis(self):
@@ -275,16 +277,26 @@ class Main:
             print("---current seting---")
             self.get_status(self)
 
-        nested_check_result=self.nested_check(selected_file_path)    
+        nested_check_result=self.nested_check(selected_file_path)
+        print("---------------------------------------------------------------")
 
         if nested_check_result:
-                mobsf_api = MobSF_API(self.server_ip, self.api_key, nested_check_result)
-                print("[Nested APK Static analysis start...]")
-                print("Proceed Automatically Static Reporting nested apk file")
-                mobsf_api.scan()
-                mobsf_api.json_resp()
-                mobsf_api.pdf()
-        print("---------------------------------------------------------------")
+                for index, apk in enumerate(nested_check_result):
+                    print(f'[{index+1}/{len(nested_check_result)}] - {apk}')
+                    mobsf_api = MobSF_API(self.server_ip, self.api_key, apk)
+                    print("[Nested APK Static analysis start...]")
+                    print("Proceed Automatically Static Reporting nested apk file")
+                    response_data = mobsf_api.upload()
+                    if response_data:
+                        mobsf_api.scan()
+                        mobsf_api.json_resp()
+                        mobsf_api.pdf()
+                    else:
+                        print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
+                        print("---current seting---")
+                        self.get_status(self)
+                        print('Selected nested apk: ', apk)
+                    print("---------------------------------------------------------------")
         
         apk_path = self.choose_file_path()
         decryptor = APKDecryptor(apk_path, self.encryption_method)
