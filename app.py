@@ -42,7 +42,7 @@ class Main:
                 pass
 
             elif command[0] == "exit":
-                option = input("Are you sure to exit program? ( XoX )ᐝ <yes(default)/no>: ")
+                option = input("Are you sure to exit program? ( XoX ) <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
@@ -323,7 +323,7 @@ class Main:
         selected_file_path = self.choose_file_path()
         
         self.run_emulator()
-        print("[Dynamic analysis start...]]")
+        print("[Dynamic analysis start...]")
         print("Please wait to set dynamic analysis")
 
         time.sleep(20)
