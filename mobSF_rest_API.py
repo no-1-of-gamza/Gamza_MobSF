@@ -7,6 +7,7 @@ import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import time
 from datetime import datetime
+import os
 
 class MobSF_API:
     def __init__(self, server, api_key, file_path):
@@ -43,9 +44,17 @@ class MobSF_API:
             return
         print("Scanning file...")
         headers = {'Authorization': self.api_key}
-        data = {'hash': self.scan_hash}
+        
+        file_extension = self.file_path.split('.')[-1]
+        
+        data = {
+            'scan_type': file_extension,  
+            'hash': self.scan_hash,
+            'file_name': os.path.basename(self.file_path) 
+        }
+        
         response = requests.post(f'{self.server}/api/v1/scan', data=data, headers=headers)
-        print("Scanning File : ",response.text)
+        #print("Scanning File : ", response.text)
 
     def pdf(self):
         """Generate PDF Report"""
@@ -63,7 +72,7 @@ class MobSF_API:
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
-            print("Report saved as report.pdf")
+            print(f"Report saved as static_report_{self.scan_hash}_{date_str}.pdf")
         else:
             print("Failed to download PDF report.")
 
@@ -76,7 +85,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/report_json', data=data, headers=headers)
-        print(response.text)
+        #print(response.text)
 
     def delete(self):
         """Delete Scan Result"""
@@ -275,3 +284,24 @@ class MobSF_API:
         response = requests.post(f'{self.server}/api/v1/frida/get_script', data=data, headers=headers)
         print("Frida Frida Get Script : ",response.text)
 
+
+
+def main():
+    # MobSF 서버 URL, API 키 및 파일 경로 설정
+    server_url = 'http://127.0.0.1:8000'  # MobSF 서버 URL로 바꾸세요.
+    api_key = 'cb637b6c71ce6a85e19f893014145cbf836a50c7754b123125d3bae36a44d276'  # MobSF API 키로 바꾸세요.
+    file_path = 'C:/Users/EJ/Desktop/sample.apk'  # 분석할 APK 또는 IPA 파일 경로로 바꾸세요.
+
+    mobSF = MobSF_API(server_url, api_key, file_path)
+
+    upload_result = mobSF.upload()
+
+    if 'hash' in upload_result:
+        print("File uploaded successfully. Initiating scan...")
+        mobSF.scan()
+        time.sleep(5) 
+        mobSF.pdf()
+        mobSF.json_resp()
+
+if __name__ == "__main__":
+    main()

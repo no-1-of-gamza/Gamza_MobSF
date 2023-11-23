@@ -79,14 +79,7 @@ class APKDecryptor:
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
-    def find_nested_apk_files(self):
-        apk_files = []
-        for root, dirs, files in os.walk(self.extract_to_path):
-            for filename in fnmatch.filter(files, '*.apk'):
-                apk_files.append(os.path.join(root, filename))
-        return apk_files
-
-    def _classify_dex_files(self):
+    def classify_dex_files(self):
         true_dex_files = []
         encrypt_dex_files = []
         pattern = '*.dex'
@@ -132,14 +125,14 @@ class APKDecryptor:
     """""""""Decrypt-------File"""""""""
     """"""""""""""""""""""""""""""""""""
     def decrypt_files(self, keys_str, encryption_method=None):
-        keys = [key.encode() for key in keys_str]  # 키 문자열을 바이트로 변환
+        keys = [key.encode() for key in keys_str] 
 
         if not keys:
             print("Error: 'keys' is empty, decryption cannot proceed.")
             return
 
         try:
-            true_dex, self.encrypted_dex = self._classify_dex_files()
+            true_dex, self.encrypted_dex = self.classify_dex_files()
             if not self.encrypted_dex:
                 print("No files to decrypt.")
                 return

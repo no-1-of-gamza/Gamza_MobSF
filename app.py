@@ -9,6 +9,7 @@ from decrypt_apk import APKDecryptor
 import shutil
 import zipfile
 from datetime import datetime
+import fnmatch
 
 class Main:
     def __init__(self):
@@ -41,7 +42,7 @@ class Main:
                 pass
 
             elif command[0] == "exit":
-                option = input("Are you sure to exit program? (ˊ࿁ˋ )ᐝ <yes(default)/no>: ")
+                option = input("Are you sure to exit program? ( XoX )ᐝ <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
@@ -94,7 +95,7 @@ class Main:
         
                                                                                                                                                                          
         To know how to use, use 'help' command.
-        Have a nice time ~ ( ^ᴗ^ )♡ ~
+        Have a nice time ~ ( 'v' )♡ ~
         """
         print(welcome_message)       
         
@@ -234,7 +235,6 @@ class Main:
                     if file.endswith('.apk'):
                         file_path = os.path.join(root, file)
                         apk_files.append(file_path)
-            print("Confirmation complete")
         else:
             print("Directory does not exist")
         
@@ -244,12 +244,6 @@ class Main:
             return apk_files
         else:
             print("nested apk was not found.")
-
-#        print("Deleting nested apk folder...")
-#        try:
-#            shutil.rmtree(zip_dir_path)
-#        except OSError as e:
-#            print(f'Error: {e.filename} - {e.strerror}')
         print("---------------------------------------------------------------")
     
     def static_analysis(self):
@@ -261,6 +255,8 @@ class Main:
             print("---------------------------------------------------------------")
             return
 
+        time.sleep(2)
+        
         selected_file_path = self.choose_file_path()
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
@@ -297,27 +293,6 @@ class Main:
                         self.get_status(self)
                         print('Selected nested apk: ', apk)
                     print("---------------------------------------------------------------")
-        
-        apk_path = self.choose_file_path()
-        decryptor = APKDecryptor(apk_path, self.encryption_method)
-        true_dex_files, encrypt_dex_files = decryptor._classify_dex_files(self)
-
-        if encrypt_dex_files :
-            print(f"Encrypted dex file found. : {encrypt_dex_files}")
-            decrpyt_yes=input("Do you want me to decrypt the encrypted dex file and extract the report again? <yes/no>:")
-            
-            if decrpyt_yes=="yes":
-                result_apk_path=self.apk_decryptor(self)
-                mobsf_api = MobSF_API(self.server_ip, self.api_key, result_apk_path)
-                if self.server_is_running():
-                    print("MobSF Server is Working!")
-                    response_data = mobsf_api.upload()
-                    if response_data:
-                        mobsf_api.scan()
-                        mobsf_api.json_resp()
-                        mobsf_api.pdf()
-            else :
-                return
 
     def run_emulator(self):
         print("---------------------------------------------------------------")
@@ -402,9 +377,7 @@ class Main:
             print("invalid file path.")
             print("---------------------------------------------------------------")
             return
-
-        self. nested_check(selected_file_path)
-        
+    
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         
@@ -505,6 +478,50 @@ class Main:
         else:
             print("nested apk was not found.")
             print("---------------------------------------------------------------")
+
+
+    def classify_dex_files_app(self):
+        true_dex_files = []
+        encrypt_dex_files = []
+        pattern = '*.dex'
+
+        try:
+            files_found = []
+            for root, dirs, files in os.walk(self.extract_to_path):
+                for filename in fnmatch.filter(files, pattern):
+                    files_found.append(os.path.join(root, filename))
+                    
+            if len(files_found) == 1:
+                print("Single dex")
+            elif len(files_found) > 1:
+                print("Multi Dex")
+            print("---------------------------------------------------------------")   
+
+            # Classifying Encrypted Dex files
+            for file_path in files_found:
+                try:
+                    with open(file_path, 'rb') as file:
+                        magic = file.read(4)
+                except IOError as e:
+                    print(f"Error reading file {file_path}: {e.strerror}")
+                    continue  # Skip to the next file
+                
+                try:
+                    magic_string = magic.decode(errors='ignore')
+                except UnicodeDecodeError as e:
+                    print(f"Error decoding file {file_path}: {e}")
+                    continue  # Skip to the next file
+
+                if magic_string == 'dex\n':
+                    true_dex_files.append(file_path)
+                else:
+                    encrypt_dex_files.append(file_path)
+
+        except Exception as e:
+            print(f"An unexpected error occurred while classifying dex files: {e}")
+
+        return true_dex_files, encrypt_dex_files
+
         
 if __name__ == "__main__":
     main = Main()
