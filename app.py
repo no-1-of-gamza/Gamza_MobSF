@@ -428,6 +428,7 @@ class Main:
         time.sleep(10)
         print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
+        result_apk = result_apk.replace('\\', '/')
         time.sleep(5)
         if result_apk:
             self.file_path.append(result_apk)
