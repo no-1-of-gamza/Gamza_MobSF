@@ -337,9 +337,9 @@ class APKDecryptor:
                     print("---------------------------------------------------------------")
                     time.sleep(5)
                     
-                    resign_apk_path = os.path.join(self.output_directory_path,"decrypt_apk","dist",os.path.splitext(os.path.basename(self.original_apk))[0]+"_result.apk" )
+                    resign_apk_path = os.path.join(self.output_directory_path,"dist",os.path.splitext(os.path.basename(self.original_apk))[0]+"_result.apk" )
                     self.resign_apk(resign_apk_path)
-                    return result_apk
+                    return resign_apk_path
                 except Exception as e :
                     print(f"An unexpected error occurred while moving repackaged APK: {e}")
                     print("---------------------------------------------------------------")
