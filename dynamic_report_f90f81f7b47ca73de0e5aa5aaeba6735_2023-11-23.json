@@ -1,6 +1,7 @@
 {
     "hash": "f90f81f7b47ca73de0e5aa5aaeba6735",
     "emails": [
+        "202414022@20.24",
         "framework@boot.art",
         "framework@boot-core-libart.art",
         "framework@boot-conscrypt.art",
@@ -12,24 +13,24 @@
         "framework@boot-voip-common.art",
         "framework@boot-ims-common.art",
         "framework@boot-android.hidl",
-        "framework@boot-android.test",
-        "202414022@20.24"
+        "framework@boot-android.test"
     ],
     "urls": [
-        "http://play.googleapis.com/generate_204",
-        "https://www.gstatic.com/android/keyboard/dictionarypack/ney-normal/metadata.json",
-        "https://www.google.com/generate_204",
-        "https://android.bugly.qq.com/rqd/async?aid=0e8a6dff-32f4-4d9e-9bcc-d8c85e95969d,",
-        "https://android.googleapis.com/checkin",
-        "https://android.bugly.qq.com/rqd/async?aid=0e8a6dff-32f4-4d9e-9bcc-d8c85e95969d",
-        "https://www.gstatic.com/android/keyboard/stickers/configs/v5/,",
-        "https://www.gstatic.com/android/keyboard/modelpack/emoji/20180831175952/superpacks_manifest.zip",
-        "www.google.com",
-        "http://connectivitycheck.gstatic.com/generate_204",
-        "https://dl.google.com/handwriting/models/handwriting.superpack_manifest.20180709.json'",
-        "http://www.google.com/gen_204",
+        "data:/mnt/expand",
+        "www.google.com,",
+        "https://android.bugly.qq.com/rqd/async?aid=cf608ea9-d4db-4511-a37a-6c806eef7891,",
+        "https://android.bugly.qq.com/rqd/async?aid=cf608ea9-d4db-4511-a37a-6c806eef7891",
         "http://goo.gl/8rd3yj",
-        "https://dl.google.com/handwriting/models/handwriting.superpack_manifest.20180709.json"
+        "http://connectivitycheck.gstatic.com/generate_204",
+        "https://www.gstatic.com/android/keyboard/modelpack/emoji/20180831175952/superpacks_manifest.zip",
+        "https://dl.google.com/handwriting/models/handwriting.superpack_manifest.20180709.json",
+        "https://www.google.com/generate_204",
+        "https://dl.google.com/handwriting/models/handwriting.superpack_manifest.20180709.json'",
+        "https://www.googleapis.com/placesandroid/v1/getplacebyid?key=aizasyaf4nrriekvqzlrktncqaaxmzb3epyhr8y",
+        "https://android.googleapis.com/checkin",
+        "www.google.com",
+        "https://www.gstatic.com/android/keyboard/stickers/configs/v5/,",
+        "https://www.gstatic.com/android/keyboard/dictionarypack/ney-normal/metadata.json"
     ],
     "domains": {},
     "clipboard": [],

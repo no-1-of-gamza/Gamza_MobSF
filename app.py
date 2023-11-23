@@ -479,49 +479,6 @@ class Main:
             print("nested apk was not found.")
             print("---------------------------------------------------------------")
 
-
-    def classify_dex_files_app(self):
-        true_dex_files = []
-        encrypt_dex_files = []
-        pattern = '*.dex'
-
-        try:
-            files_found = []
-            for root, dirs, files in os.walk(self.extract_to_path):
-                for filename in fnmatch.filter(files, pattern):
-                    files_found.append(os.path.join(root, filename))
-                    
-            if len(files_found) == 1:
-                print("Single dex")
-            elif len(files_found) > 1:
-                print("Multi Dex")
-            print("---------------------------------------------------------------")   
-
-            # Classifying Encrypted Dex files
-            for file_path in files_found:
-                try:
-                    with open(file_path, 'rb') as file:
-                        magic = file.read(4)
-                except IOError as e:
-                    print(f"Error reading file {file_path}: {e.strerror}")
-                    continue  # Skip to the next file
-                
-                try:
-                    magic_string = magic.decode(errors='ignore')
-                except UnicodeDecodeError as e:
-                    print(f"Error decoding file {file_path}: {e}")
-                    continue  # Skip to the next file
-
-                if magic_string == 'dex\n':
-                    true_dex_files.append(file_path)
-                else:
-                    encrypt_dex_files.append(file_path)
-
-        except Exception as e:
-            print(f"An unexpected error occurred while classifying dex files: {e}")
-
-        return true_dex_files, encrypt_dex_files
-
         
 if __name__ == "__main__":
     main = Main()
