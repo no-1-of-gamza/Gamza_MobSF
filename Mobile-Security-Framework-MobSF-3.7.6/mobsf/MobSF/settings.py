@@ -293,6 +293,7 @@ JADX_TIMEOUT = int(os.getenv('MOBSF_JADX_TIMEOUT', 1800))
 EFR_01 = os.getenv('EFR_01', '0')
 # USER CONFIGURATION
 # ===================
+DEFAULT_SCRIPT = os.getenv('MOBSF_DEFAULT_SCRIPT', '')
 if CONFIG_HOME:
     logger.info('Loading User config from: %s', USER_CONFIG)
 else:
@@ -398,7 +399,6 @@ else:
     ANALYZER_IDENTIFIER = os.getenv('MOBSF_ANALYZER_IDENTIFIER', '')
     FRIDA_TIMEOUT = int(os.getenv('MOBSF_FRIDA_TIMEOUT', '4'))
     ACTIVITY_TESTER_SLEEP = int(os.getenv('MOBSF_ACTIVITY_TESTER_SLEEP', '4'))
-    DEFAULT_SCRIPT = os.getenv('MOBSF_DEFAULT_SCRIPT', 'D:\\Goorm\\Project_2_3\\frida_script.js')
     # ==============================================
 
     # ================HTTPS PROXY ===============
