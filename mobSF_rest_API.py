@@ -54,7 +54,7 @@ class MobSF_API:
         }
         
         response = requests.post(f'{self.server}/api/v1/scan', data=data, headers=headers)
-        #print("Scanning File : ", response.text)
+        print("Scanning File : ", response.text)
 
     def pdf(self):
         """Generate PDF Report"""
@@ -169,7 +169,7 @@ class MobSF_API:
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/dynamic/report_json', data=data, headers=headers)
         response_json = response.json()
-        print(json.dumps(response_json, indent=4))
+        #print(json.dumps(response_json, indent=4))
         current_time = datetime.now()
         date_str = current_time.strftime("%Y-%m-%d")
         filename = f"dynamic_report_{self.scan_hash}_{date_str}.json"
@@ -287,10 +287,9 @@ class MobSF_API:
 
 
 def main():
-    # MobSF 서버 URL, API 키 및 파일 경로 설정
-    server_url = 'http://127.0.0.1:8000'  # MobSF 서버 URL로 바꾸세요.
-    api_key = 'cb637b6c71ce6a85e19f893014145cbf836a50c7754b123125d3bae36a44d276'  # MobSF API 키로 바꾸세요.
-    file_path = 'C:/Users/EJ/Desktop/sample.apk'  # 분석할 APK 또는 IPA 파일 경로로 바꾸세요.
+    server_url = 'http://127.0.0.1:8000'  
+    api_key = 'cb637b6c71ce6a85e19f893014145cbf836a50c7754b123125d3bae36a44d276'  
+    file_path = 'C:/Users/EJ/Desktop/sample.apk' 
 
     mobSF = MobSF_API(server_url, api_key, file_path)
 
