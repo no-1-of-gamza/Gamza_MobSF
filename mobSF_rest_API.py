@@ -96,7 +96,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/delete_scan', data=data, headers=headers)
-        print(response.text)
+        #print(response.text)
         
 
     """"""""""""""""""""""""""""""""""""
@@ -147,7 +147,7 @@ class MobSF_API:
         data = {'hash': self.scan_hash,
                 'activity' : activity}
         response = requests.post(f'{self.server}/api/v1/android/start_activity', data=data, headers=headers)
-        print("Dynamic Analysis Activity Start : ",activity,response.text)
+        #print("Dynamic Analysis Activity Start : ",activity,response.text)
 
     def dynamic_ttl_ssl_test(self):
         """Dynamic analysis TLS/SSL Security Tester API"""
@@ -157,7 +157,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/android/tls_tests', data=data, headers=headers)
-        print("Dynamic analysis TLS/SSL Security Tester : ",response.text)
+        #print("Dynamic analysis TLS/SSL Security Tester : ",response.text)
 
 
     def dynamic_jason_report(self):
@@ -231,7 +231,7 @@ class MobSF_API:
             data['class_trace'] = class_trace
 
         response = requests.post(f'{self.server}/api/v1/frida/instrument', headers=headers, data=data)
-        print("Perform Frida Instrumentation : ",response.text)
+        #print("Perform Frida Instrumentation : ",response.text)
 
     def frida_api_monitor(self):
         """Frida API Monitor API"""
@@ -241,7 +241,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/frida/api_monitor', data=data, headers=headers)
-        print(response.text)
+        #print(response.text)
 
     def frida_get_dependencies_api(self):
         """Frida Get Runtime Dependencies API"""
@@ -251,7 +251,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/frida/api_monitor', data=data, headers=headers)
-        print("Frida Get Runtime Dependencies : ",response.text)
+        #print("Frida Get Runtime Dependencies : ",response.text)
 
     def frida_view_logs(self):
         """Frida View Logs API"""
@@ -261,7 +261,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/frida/logs', data=data, headers=headers)
-        print("Frida View Logs : ",response.text)
+        #print("Frida View Logs : ",response.text)
     
     def frida_list_scripts(self):
         """Frida List Scripts API"""
@@ -271,7 +271,7 @@ class MobSF_API:
         headers = {'Authorization': self.api_key}
         data = {'hash': self.scan_hash}
         response = requests.post(f'{self.server}/api/v1/frida/list_scripts', data=data, headers=headers)
-        print(response.text)
+        #print(response.text)
 
     def frida_get_script(self, scripts):
         """Frida Frida Get Script API"""
@@ -282,7 +282,7 @@ class MobSF_API:
         data = {'hash': self.scan_hash,
                 'scripts[]':scripts}
         response = requests.post(f'{self.server}/api/v1/frida/get_script', data=data, headers=headers)
-        print("Frida Frida Get Script : ",response.text)
+        #print("Frida Frida Get Script : ",response.text)
 
 
 
