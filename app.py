@@ -9,6 +9,7 @@ from decrypt_apk import APKDecryptor
 import shutil
 import zipfile
 from datetime import datetime
+import fnmatch
 
 class Main:
     def __init__(self):
@@ -16,15 +17,17 @@ class Main:
 
     def load_config(self):
         self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
-        self.mobsf_path = self.config['MobSF'].get('MobSF', self.config['DEFAULT']['MobSF'])
+        config_file_path = os.path.join(os.path.dirname(__file__), 'config.ini')
+        
+        self.config.read(config_file_path)
+        self.mobsf_path = os.path.join(os.path.dirname(__file__), self.config['MobSF']['MobSF'])
         self.server_ip = self.config['SERVER'].get('ServerIP', self.config['DEFAULT']['ServerIP'])
         self.api_key = self.config['API'].get('ApiKey', self.config['DEFAULT']['ApiKey'])
         self.file_path = self.config['FILE'].get('FilePath', self.config['DEFAULT']['FilePath']).split(',')
         self.avm_name = self.config['AVM'].get('AVM_Name', self.config['DEFAULT']['AVM_Name'])
         self.frida_script_path = self.config['Frida'].get('Frida_Script', self.config['DEFAULT']['Frida_Script'])
-        self.encryption_method = self.config['Encryption_method'].get('encryption_method', self.config['DEFAULT']['Encryption_method'])
-        
+        self.encryption_method = self.config['Encryption_method'].get('encryption_method', self.config['DEFAULT']['Encryption_method'])   
+
     def save_config(self):
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
@@ -39,7 +42,7 @@ class Main:
                 pass
 
             elif command[0] == "exit":
-                option = input("Are you sure to exit program? (ˊ࿁ˋ )ᐝ <yes(default)/no>: ")
+                option = input("Are you sure to exit program? ( XoX ) <yes(default)/no>: ")
                 option = option.lower()
                 if option == 'no' or option == 'n':
                     continue               
@@ -68,7 +71,7 @@ class Main:
                 self.dynamic_analysis_stop()
             
             elif command[0] == "nested" and len(command) > 1 and command[1] == "check":
-                self.nested_check()
+                self.add_nested_path()
                         
             else:
                 print("\'{}\' is invalid command.\n".format(" ".join(command)))
@@ -92,7 +95,7 @@ class Main:
         
                                                                                                                                                                          
         To know how to use, use 'help' command.
-        Have a nice time ~ ( ^ᴗ^ )♡ ~
+        Have a nice time ~ ( 'v' )♡ ~
         """
         print(welcome_message)       
         
@@ -203,14 +206,57 @@ class Main:
                 print("No file paths are available.")
                 return None
         
+    def nested_check(self, selected_file_path):
+        print("---------------------------------------------------------------")
+        print("Checking nested apk...")
+        
+        if os.path.exists(selected_file_path) == False:
+            print(f"Error: Invalid Path - {selected_file_path}")
+            print("---------------------------------------------------------------")
+            return
+        current_dir_path = os.getcwd()
+
+        zip_file_path = selected_file_path.split('/')[-1] + ".zip"
+        shutil.copy(selected_file_path, zip_file_path)
+
+        zip_dir_path = current_dir_path + "\\nested_apk\\analysis"
+        if not os.path.exists(zip_dir_path):
+            os.makedirs(zip_dir_path, exist_ok=True)
+        else:
+            print("Directory already exists")
+    
+        with zipfile.ZipFile(zip_file_path, 'r') as unzip:
+            unzip.extractall(zip_dir_path)
+    
+        apk_files = []
+        if os.path.exists(zip_dir_path):
+            for root, dirs, files in os.walk(zip_dir_path):
+                for file in files:
+                    if file.endswith('.apk'):
+                        file_path = os.path.join(root, file)
+                        apk_files.append(file_path)
+        else:
+            print("Directory does not exist")
+        
+        if apk_files:
+            print(len(apk_files), "nested apks were found.")
+            print("---------------------------------------------------------------")
+            return apk_files
+        else:
+            print("nested apk was not found.")
+        print("---------------------------------------------------------------")
+    
     def static_analysis(self):
         print("---------------------------------------------------------------")
-        print("Static analyze start...")
+        print("[Static analysis start...]")
 
         if not self.server_is_running():
             print("MobSF Server is not running. Please start the server before analysis.")
+            print("---------------------------------------------------------------")
             return
 
+        time.sleep(2)
+        
         selected_file_path = self.choose_file_path()
         
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
@@ -226,11 +272,31 @@ class Main:
             print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
             print("---current seting---")
             self.get_status(self)
+
+        nested_check_result=self.nested_check(selected_file_path)
         print("---------------------------------------------------------------")
+
+        if nested_check_result:
+                for index, apk in enumerate(nested_check_result):
+                    print(f'[{index+1}/{len(nested_check_result)}] - {apk}')
+                    mobsf_api = MobSF_API(self.server_ip, self.api_key, apk)
+                    print("[Nested APK Static analysis start...]")
+                    print("Proceed Automatically Static Reporting nested apk file")
+                    response_data = mobsf_api.upload()
+                    if response_data:
+                        mobsf_api.scan()
+                        mobsf_api.json_resp()
+                        mobsf_api.pdf()
+                    else:
+                        print("Server is not running. Please check the MobSF server settings and ensure it is running before trying again.")
+                        print("---current seting---")
+                        self.get_status(self)
+                        print('Selected nested apk: ', apk)
+                    print("---------------------------------------------------------------")
 
     def run_emulator(self):
         print("---------------------------------------------------------------")
-        print("Running emnulator start")
+        print("[Running emnulator start]")
 
         if self.server_is_running():
             print("MobSF Server Checking...")
@@ -257,6 +323,7 @@ class Main:
         selected_file_path = self.choose_file_path()
         
         self.run_emulator()
+        print("[Dynamic analysis start...]")
         print("Please wait to set dynamic analysis")
 
         time.sleep(20)
@@ -310,7 +377,7 @@ class Main:
             print("invalid file path.")
             print("---------------------------------------------------------------")
             return
-
+    
         mobsf_api = MobSF_API(self.server_ip, self.api_key, selected_file_path)
         mobsf_api.upload()
         
@@ -361,15 +428,18 @@ class Main:
         time.sleep(10)
         print("output_dir: ",output_dir)
         result_apk = decryptor.repackaging_apk(output_dir)
+        result_apk = result_apk.replace('\\', '/')
         time.sleep(5)
         if result_apk:
             self.file_path.append(result_apk)
             print("The result apk file path has been added. Please proceed with the analysis.")
-    def nested_check(self):
+    
+    def add_nested_path(self):
         print("---------------------------------------------------------------")
         date_time_format = datetime.now().strftime("%Y%m%d_%H%M")
         
         selected_file_path = self.choose_file_path()
+        print("---------------------------------------------------------------")
         
         if os.path.exists(selected_file_path) == False:
             print(f"Error: Invalid Path - {selected_file_path}")
@@ -377,36 +447,39 @@ class Main:
             return
         current_dir_path = os.getcwd()
 
-        zip_file_path = current_dir_path + "\\" + selected_file_path.split('/')[-1] + ".zip"
+        zip_file_path = selected_file_path.split('/')[-1] + ".zip"
         shutil.copy(selected_file_path, zip_file_path)
 
-        zip_dir_path = current_dir_path + "/nested_apk"
+        zip_dir_path = current_dir_path + "\\nested_apk"
         zip_dir_path = os.path.join(zip_dir_path, date_time_format)
         if not os.path.exists(zip_dir_path):
-            os.mkdir(zip_dir_path)
-            print("Directory completed creation")
+            os.makedirs(zip_dir_path, exist_ok=True)
         else:
             print("Directory already exists")
     
         with zipfile.ZipFile(zip_file_path, 'r') as unzip:
             unzip.extractall(zip_dir_path)
     
-        assets = zip_dir_path + "/assets"
         apk_files = []
-        if os.path.exists(assets):
-            file_list = os.listdir(assets)
-            for file in file_list:
-                if file.endswith('.apk'):
-                    apk_files.append(file)
-            has_nested_apk = bool(apk_files)
-            print("Confirmation complete")
+        if os.path.exists(zip_dir_path):
+            for root, dirs, files in os.walk(zip_dir_path):
+                for file in files:
+                    if file.endswith('.apk'):
+                        file_path = os.path.join(root, file)
+                        apk_files.append(file_path)
         else:
             print("Directory does not exist")
         
-        if has_nested_apk:
-            self.file_path.append(assets + "/" + apk_files[0])
+        if apk_files:
+            print(len(apk_files), "nested apks were found.")
+            for apk in apk_files:
+                self.file_path.append(apk)
             print("The nested apk file path has been added. Please proceed with the analysis.")
             print("---------------------------------------------------------------")
+        else:
+            print("nested apk was not found.")
+            print("---------------------------------------------------------------")
+
         
 if __name__ == "__main__":
     main = Main()
