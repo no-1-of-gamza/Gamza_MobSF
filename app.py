@@ -333,7 +333,7 @@ class Main:
         response_data = mobsf_api.upload()
 
         if response_data:
-            max_retries = 3
+            max_retries = 5
             attempts = 0
 
             while attempts < max_retries:
