@@ -407,7 +407,7 @@ class Main:
         mobsf_api.dynamic_analysis_stop()
         mobsf_api.dynamic_jason_report()
         print("---------------------------------------------------------------")
-        return
+        
 
     def apk_decryptor(self):
         print("---------------------------------------------------------------")
